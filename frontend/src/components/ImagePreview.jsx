@@ -10,14 +10,22 @@ const wrapperStyle = {
 };
 
 export default function ImagePreview({ title, imageBase64 }) {
+  const src = imageBase64 ? `data:image/jpeg;base64,${imageBase64}` : "";
+
   return (
     <section style={wrapperStyle}>
       <h2 style={{ margin: 0 }}>{title}</h2>
-      {imageBase64 ? (
+      {src ? (
         <img
-          src={`data:image/jpeg;base64,${imageBase64}`}
+          src={src}
           alt={title}
-          style={{ width: "100%", borderRadius: "18px", objectFit: "cover" }}
+          style={{
+            width: "100%",
+            borderRadius: "18px",
+            objectFit: "cover",
+            minHeight: "260px",
+            maxHeight: "520px",
+          }}
         />
       ) : (
         <div

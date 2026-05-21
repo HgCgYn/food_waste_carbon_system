@@ -6,6 +6,39 @@ import ImagePreview from "./components/ImagePreview";
 import ResultTable from "./components/ResultTable";
 import CarbonSummary from "./components/CarbonSummary";
 
+const loadingKeyframes = `
+  @keyframes analysisPulse {
+    0%,
+    100% {
+      opacity: 0.45;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes analysisShimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes overlayFloat {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+`;
+
 const appStyle = {
   minHeight: "100vh",
   padding: "32px 20px 48px",
@@ -46,6 +79,55 @@ const twoColumnStyle = {
   alignItems: "start",
 };
 
+const overlayStyle = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(22, 34, 26, 0.42)",
+  backdropFilter: "blur(10px)",
+  display: "grid",
+  placeItems: "center",
+  zIndex: 1000,
+  padding: "24px",
+};
+
+const overlayCardStyle = {
+  width: "min(440px, 100%)",
+  background: "rgba(255,255,255,0.92)",
+  borderRadius: "28px",
+  padding: "28px 24px",
+  boxShadow: "0 30px 80px rgba(25, 41, 30, 0.22)",
+  display: "grid",
+  gap: "18px",
+  textAlign: "center",
+};
+
+const overlaySpinnerStyle = {
+  width: "72px",
+  height: "72px",
+  margin: "0 auto",
+  borderRadius: "22px",
+  background:
+    "linear-gradient(135deg, rgba(45,106,79,0.16), rgba(160,196,163,0.42), rgba(45,106,79,0.16))",
+  display: "grid",
+  placeItems: "center",
+  animation: "analysisShimmer 2.2s linear infinite, overlayFloat 1.6s ease-in-out infinite",
+};
+
+const overlayDotsStyle = {
+  display: "flex",
+  justifyContent: "center",
+  gap: "10px",
+};
+
+const overlayDotStyle = (delay) => ({
+  width: "12px",
+  height: "12px",
+  borderRadius: "999px",
+  background: "#2d6a4f",
+  animation: "analysisPulse 1s ease-in-out infinite",
+  animationDelay: delay,
+});
+
 export default function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -53,6 +135,7 @@ export default function App() {
 
   return (
     <main style={appStyle}>
+      <style>{loadingKeyframes}</style>
       <div style={shellStyle}>
         <header style={headerStyle}>
           <p style={{ margin: 0, letterSpacing: "0.18em", textTransform: "uppercase" }}>
@@ -83,6 +166,25 @@ export default function App() {
 
         <ResultTable items={result?.objects ?? []} />
       </div>
+      {loading ? (
+        <div style={overlayStyle} role="status" aria-live="polite" aria-busy="true">
+          <div style={overlayCardStyle}>
+            <div style={overlaySpinnerStyle}>
+              <div style={overlayDotsStyle} aria-hidden="true">
+                <span style={overlayDotStyle("0s")} />
+                <span style={overlayDotStyle("0.18s")} />
+                <span style={overlayDotStyle("0.36s")} />
+              </div>
+            </div>
+            <div style={{ display: "grid", gap: "8px" }}>
+              <strong style={{ fontSize: "1.2rem" }}>正在分析中</strong>
+              <div style={{ color: "#4b5d51", lineHeight: 1.6 }}>
+                系統正在辨識餐盤內容、估算重量，並生成偵測結果圖片。
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
