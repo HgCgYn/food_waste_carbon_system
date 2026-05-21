@@ -1,0 +1,69 @@
+label_id,yolo_label,food_name_en,food_name_zh,category,carbon_factor,density_factor,source,matched_lookup_key,carbon_unit,match_note
+0,apple,Apples,Apples,fruit,0.430000,1.0,food-product:apples_2010,apples,kgCO2e/kg_product,Mapped to the general Apples commodity from food-product.
+1,asparagus,"Asparagus, green, raw","Asparagus, green, raw",vegetable,1.640000,1.0,foodcarbon:20279,asparagus_green_raw,kgCO2e/kg_product,Mapped to a raw asparagus entry.
+2,bacon,"Bacon, back","Bacon, back",meat,8.360000,1.0,foodcarbon:28727,bacon_back,kgCO2e/kg_product,Mapped to the closest direct bacon entry.
+3,baked potatoes,"Potato, roasted/baked","Potato, roasted/baked",starch,0.852000,1.0,foodcarbon:4026,potato_roasted_baked,kgCO2e/kg_product,Mapped to roasted/baked potato.
+4,banana,Bananas,Bananas,fruit,0.860000,1.0,food-product:bananas_2010,bananas,kgCO2e/kg_product,Mapped to the general Bananas commodity from food-product.
+5,beans,"Broad bean, cooked","Broad bean, cooked",vegetable,0.585000,1.0,foodcarbon:20500,broad_bean_cooked,kgCO2e/kg_product,"Mapped to broad bean, cooked."
+6,black bean,"Broad bean, cooked","Broad bean, cooked",vegetable,0.585000,1.0,foodcarbon:20500,broad_bean_cooked,kgCO2e/kg_product,"Mapped to broad bean, cooked, as the chosen bean proxy."
+7,blueberries,"Blueberry, raw","Blueberry, raw",fruit,0.922000,1.0,foodcarbon:13028,blueberry_raw,kgCO2e/kg_product,Mapped to raw blueberry.
+9,boiled egg,"Egg, hard-boiled","Egg, hard-boiled",egg,2.740000,1.0,foodcarbon:22010,egg_hard_boiled,kgCO2e/kg_product,Mapped to hard-boiled egg.
+11,bread,"Bread, French bread, baguette","Bread, French bread, baguette",starch,0.776000,1.0,foodcarbon:7001,bread_french_bread_baguette,kgCO2e/kg_product,Mapped to plain baguette bread.
+12,breaded,"Chicken, nugget, breaded croquette","Chicken, nugget, breaded croquette",meat,3.870000,1.0,foodcarbon:36027,chicken_nugget_breaded_croquette,kgCO2e/kg_product,Mapped to breaded chicken nugget as the chosen breaded-item proxy.
+13,brocolis,"Broccoli, raw","Broccoli, raw",vegetable,0.951000,1.0,foodcarbon:20057,broccoli_raw,kgCO2e/kg_product,Mapped by spelling normalization from brocolis to broccoli.
+14,cabbage,"Green cabbage, raw","Green cabbage, raw",vegetable,0.848000,1.0,foodcarbon:20069,green_cabbage_raw,kgCO2e/kg_product,Mapped to raw green cabbage.
+15,cabidela rice,Rice,Rice,starch,4.450000,1.0,food-product:rice_2010,rice,kgCO2e/kg_product,Mapped to generic rice.
+16,cake,Brownie (chocolate cake),Brownie (chocolate cake),dessert,8.360000,1.0,foodcarbon:23032,brownie_chocolate_cake,kgCO2e/kg_product,Mapped to brownie chocolate cake as the chosen cake proxy.
+17,carrot,"Carrot, raw","Carrot, raw",vegetable,0.396000,1.0,foodcarbon:20009,carrot_raw,kgCO2e/kg_product,Mapped to raw carrot.
+18,cereals,"Breakfast cereals, corn flakes, plain, fortified with vitamins and chemical elements","Breakfast cereals, corn flakes, plain, fortified with vitamins and chemical elements",starch,3.400000,1.0,foodcarbon:32005,breakfast_cereals_corn_flakes_plain_fortified_with_vitamins_and_chemical_elements,kgCO2e/kg_product,Mapped to plain corn-flakes breakfast cereals.
+19,cheese,Cheese,Cheese,dairy,23.880000,1.0,food-product:cheese_2010,cheese,kgCO2e/kg_product,Exact commodity match from food-product.
+20,chicken,"Chicken, breast, without skin, raw","Chicken, breast, without skin, raw",meat,5.580000,1.0,foodcarbon:36017,chicken_breast_without_skin_raw,kgCO2e/kg_product,Mapped to raw chicken breast without skin.
+21,chicken steak,"Chicken, breast, without skin, raw","Chicken, breast, without skin, raw",meat,5.580000,1.0,foodcarbon:36017,chicken_breast_without_skin_raw,kgCO2e/kg_product,Mapped to the closest chicken cut entry.
+22,chips,"French fries or chips, frozen, deep-fried","French fries or chips, frozen, deep-fried",starch,1.460000,1.0,foodcarbon:4032,french_fries_or_chips_frozen_deep_fried,kgCO2e/kg_product,Mapped to deep-fried French fries/chips.
+23,chorizo,"Salami, pure pork","Salami, pure pork",meat,8.250000,1.0,foodcarbon:30351,salami_pure_pork,kgCO2e/kg_product,Mapped to pure pork salami as the chosen chorizo proxy.
+24,coffee,Coffee,Coffee,beverage,28.530000,1.0,food-product:coffee_2010,coffee,kgCO2e/kg_product,Exact commodity match from food-product.
+26,cucumber,"Cucumber, pulp and peel, raw","Cucumber, pulp and peel, raw",vegetable,0.512000,1.0,foodcarbon:20019,cucumber_pulp_and_peel_raw,kgCO2e/kg_product,Mapped to raw cucumber with peel.
+28,cutlet,"Lamb cutlet, grilled","Lamb cutlet, grilled",meat,52.400000,1.0,foodcarbon:21501,lamb_cutlet_grilled,kgCO2e/kg_product,Mapped to grilled lamb cutlet.
+29,fish,Fish (farmed),Fish (farmed),seafood,13.630000,1.0,food-product:fish_farmed_2010,fish_farmed,kgCO2e/kg_product,Mapped to the generic Fish (farmed) commodity from food-product.
+30,fish hake,"European hake, raw","European hake, raw",seafood,7.590000,1.0,foodcarbon:26044,european_hake_raw,kgCO2e/kg_product,Mapped to raw European hake.
+32,french fries,"French fries or chips, frozen, deep-fried","French fries or chips, frozen, deep-fried",starch,1.460000,1.0,foodcarbon:4032,french_fries_or_chips_frozen_deep_fried,kgCO2e/kg_product,Mapped to deep-fried French fries.
+33,fried cod,"Cod, raw","Cod, raw",seafood,12.000000,1.0,foodcarbon:26043,cod_raw,kgCO2e/kg_product,Mapped to cod as the closest direct species entry.
+34,fried egg,"Egg, fried without added fat","Egg, fried without added fat",egg,2.400000,1.0,foodcarbon:22505,egg_fried_without_added_fat,kgCO2e/kg_product,Mapped to fried egg without added fat.
+36,gelatin,"Gelatine, dried","Gelatine, dried",dessert,2.620000,1.0,foodcarbon:11007,gelatine_dried,kgCO2e/kg_product,Mapped by spelling normalization from gelatin to gelatine.
+37,grape,"Grape, raw","Grape, raw",fruit,0.510000,1.0,foodcarbon:13112,grape_raw,kgCO2e/kg_product,Mapped to raw grape.
+38,greens,"Green cabbage, raw","Green cabbage, raw",vegetable,0.848000,1.0,foodcarbon:20069,green_cabbage_raw,kgCO2e/kg_product,Mapped to raw green cabbage as the chosen greens proxy.
+39,grilled chop,"Pork, chop, grilled","Pork, chop, grilled",meat,8.650000,1.0,foodcarbon:28101,pork_chop_grilled,kgCO2e/kg_product,Mapped to grilled pork chop.
+40,grilled steak,"Beef, rump steak, grilled","Beef, rump steak, grilled",meat,36.600000,1.0,foodcarbon:6207,beef_rump_steak_grilled,kgCO2e/kg_product,Mapped to grilled beef rump steak.
+41,ham,"Cooked ham, choice","Cooked ham, choice",meat,7.650000,1.0,foodcarbon:28910,cooked_ham_choice,kgCO2e/kg_product,"Mapped to cooked ham, choice."
+43,lasagna,Lasagna or cannelloni with meat (bolognese sauce),Lasagna or cannelloni with meat (bolognese sauce),prepared_meal,6.100000,1.0,foodcarbon:25081,lasagna_or_cannelloni_with_meat_bolognese_sauce,kgCO2e/kg_product,Mapped to meat lasagna / cannelloni with bolognese sauce.
+44,lettuce,"Lettuce, raw","Lettuce, raw",vegetable,0.868000,1.0,foodcarbon:20031,lettuce_raw,kgCO2e/kg_product,Mapped to raw lettuce.
+45,lime,"Lime, pulp, raw","Lime, pulp, raw",fruit,0.570000,1.0,foodcarbon:13067,lime_pulp_raw,kgCO2e/kg_product,Mapped to raw lime pulp.
+46,mashed potatoes,Mashed potatoes w fresh tome cheese,Mashed potatoes w fresh tome cheese,starch,3.930000,1.0,foodcarbon:4041,mashed_potatoes_w_fresh_tome_cheese,kgCO2e/kg_product,Mapped to mashed potatoes with fresh tome cheese.
+47,meatballs,"Beef, meat balls, cooked","Beef, meat balls, cooked",meat,32.200000,1.0,foodcarbon:25163,beef_meat_balls_cooked,kgCO2e/kg_product,Mapped to cooked beef meat balls.
+48,melon,"Melon, cantaloupe (ex Cavaillon or Charentais melon), pulp, raw","Melon, cantaloupe (ex Cavaillon or Charentais melon), pulp, raw",fruit,0.979000,1.0,foodcarbon:13026,melon_cantaloupe_ex_cavaillon_or_charentais_melon_pulp_raw,kgCO2e/kg_product,Mapped to raw cantaloupe melon pulp.
+49,minced meat,"Poultry, minced meat","Poultry, minced meat",meat,7.470000,1.0,foodcarbon:28927,poultry_minced_meat,kgCO2e/kg_product,Mapped to poultry minced meat.
+51,mussel,"Mediterranean mussel, raw","Mediterranean mussel, raw",seafood,5.330000,1.0,foodcarbon:10026,mediterranean_mussel_raw,kgCO2e/kg_product,Mapped to raw Mediterranean mussel.
+53,omelet,"Omelette, with cheese","Omelette, with cheese",egg,2.900000,1.0,foodcarbon:22506,omelette_with_cheese,kgCO2e/kg_product,Mapped to omelette with cheese.
+54,onion,"Onion, raw","Onion, raw",vegetable,0.421000,1.0,foodcarbon:20034,onion_raw,kgCO2e/kg_product,Mapped to raw onion.
+55,pasta,"Dried pasta, raw","Dried pasta, raw",starch,1.980000,1.0,foodcarbon:9810,dried_pasta_raw,kgCO2e/kg_product,Mapped to generic dried pasta.
+56,pineapple,"Pineapple, pulp, raw","Pineapple, pulp, raw",fruit,1.360000,1.0,foodcarbon:13002,pineapple_pulp_raw,kgCO2e/kg_product,Mapped to raw pineapple pulp.
+57,pizza,"Pizza, cheese and tomato or Margherita pizza","Pizza, cheese and tomato or Margherita pizza",prepared_meal,1.840000,1.0,foodcarbon:25404,pizza_cheese_and_tomato_or_margherita_pizza,kgCO2e/kg_product,Mapped to cheese and tomato / Margherita pizza.
+59,pork,"Cooked pork shoulder, choice","Cooked pork shoulder, choice",meat,7.650000,1.0,foodcarbon:28911,cooked_pork_shoulder_choice,kgCO2e/kg_product,"Mapped to cooked pork shoulder, choice."
+60,pork belly,"Pork, belly, raw","Pork, belly, raw",meat,6.580000,1.0,foodcarbon:28002,pork_belly_raw,kgCO2e/kg_product,Mapped to raw pork belly.
+62,pork loin,"Pork, loin, raw","Pork, loin, raw",meat,6.580000,1.0,foodcarbon:28302,pork_loin_raw,kgCO2e/kg_product,Mapped to raw pork loin.
+63,rice,Rice,Rice,starch,4.450000,1.0,food-product:rice_2010,rice,kgCO2e/kg_product,Exact commodity match from food-product.
+64,salmon,"Salmon, raw, farmed","Salmon, raw, farmed",seafood,5.550000,1.0,foodcarbon:26036,salmon_raw_farmed,kgCO2e/kg_product,Mapped to raw farmed salmon.
+65,scrambled eggs,"Egg, scrambled, with added fat","Egg, scrambled, with added fat",egg,3.440000,1.0,foodcarbon:22502,egg_scrambled_with_added_fat,kgCO2e/kg_product,Mapped to scrambled egg with added fat.
+66,scrambled eggs with bacon,"Egg, scrambled, with added fat","Egg, scrambled, with added fat",egg,3.440000,1.0,foodcarbon:22502,egg_scrambled_with_added_fat,kgCO2e/kg_product,Mapped to scrambled egg with added fat as the chosen proxy for scrambled eggs with bacon.
+67,soup,"Soup, chicken and vegetables, prepacked, to be reheated","Soup, chicken and vegetables, prepacked, to be reheated",prepared_meal,0.140000,1.0,foodcarbon:25901,soup_chicken_and_vegetables_prepacked_to_be_reheated,kgCO2e/kg_product,Mapped to prepacked chicken and vegetables soup.
+69,spaghetti,"Bolognese-style pasta (spaghetti, tagliatelle…)","Bolognese-style pasta (spaghetti, tagliatelle…)",prepared_meal,6.510000,1.0,foodcarbon:25085,bolognese_style_pasta_spaghetti_tagliatelle,kgCO2e/kg_product,Mapped to bolognese-style pasta (spaghetti/tagliatelle).
+71,steak,"Beef, flank steak, grilled/pan-fried","Beef, flank steak, grilled/pan-fried",meat,36.700000,1.0,foodcarbon:6211,beef_flank_steak_grilled_pan_fried,kgCO2e/kg_product,Mapped to grilled/pan-fried beef flank steak.
+72,steaks with mushrooms,"Beef, flank steak, grilled/pan-fried","Beef, flank steak, grilled/pan-fried",meat,36.700000,1.0,foodcarbon:6211,beef_flank_steak_grilled_pan_fried,kgCO2e/kg_product,Mapped to grilled/pan-fried beef flank steak as the chosen base for steaks with mushrooms.
+73,stewed veal,"Veal, escalope, cooked","Veal, escalope, cooked",meat,29.400000,1.0,foodcarbon:6520,veal_escalope_cooked,kgCO2e/kg_product,Mapped to cooked veal escalope.
+74,strawberry,"Strawberry, raw","Strawberry, raw",fruit,0.533000,1.0,foodcarbon:13014_1,strawberry_raw,kgCO2e/kg_product,Mapped to raw strawberry.
+75,toasted bread,"Toasted bread, home-made","Toasted bread, home-made",starch,1.350000,1.0,foodcarbon:7004,toasted_bread_home_made,kgCO2e/kg_product,Mapped to home-made toasted bread.
+76,tomato,"Tomato, raw","Tomato, raw",vegetable,0.750000,1.0,foodcarbon:20047_1,tomato_raw,kgCO2e/kg_product,Mapped to raw tomato.
+77,tuna,"Skipjack tuna, raw","Skipjack tuna, raw",seafood,4.950000,1.0,foodcarbon:26068,skipjack_tuna_raw,kgCO2e/kg_product,Mapped to raw skipjack tuna.
+80,turkey steak,"Turkey, escalope, raw","Turkey, escalope, raw",meat,5.580000,1.0,foodcarbon:36304,turkey_escalope_raw,kgCO2e/kg_product,Mapped to raw turkey escalope.
+81,vegetables,"Diced mixed vegetables, canned, drained","Diced mixed vegetables, canned, drained",vegetable,1.130000,1.0,foodcarbon:20051,diced_mixed_vegetables_canned_drained,kgCO2e/kg_product,"Mapped to diced mixed vegetables, canned, drained."
+84,watermelon,"Watermelon, pulp, raw","Watermelon, pulp, raw",fruit,0.680000,1.0,foodcarbon:13036,watermelon_pulp_raw,kgCO2e/kg_product,Mapped to raw watermelon pulp.

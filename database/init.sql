@@ -1,0 +1,114 @@
+-- PostgreSQL schema and starter food carbon factors for the food waste carbon system.
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS food_carbon_factors (
+    food_id SERIAL PRIMARY KEY,
+    yolo_label VARCHAR(100) NOT NULL UNIQUE,
+    food_name_zh VARCHAR(100) NOT NULL,
+    category VARCHAR(100),
+    carbon_factor NUMERIC(10, 6) NOT NULL DEFAULT 0,
+    density_factor NUMERIC(10, 6) NOT NULL DEFAULT 1,
+    source TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS analysis_records (
+    record_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    image_path TEXT NOT NULL,
+    total_weight_g DOUBLE PRECISION NOT NULL,
+    total_carbon_emission_kg NUMERIC(12, 6) NOT NULL DEFAULT 0,
+    waste_percentage DOUBLE PRECISION NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS analysis_items (
+    item_id SERIAL PRIMARY KEY,
+    record_id INTEGER NOT NULL REFERENCES analysis_records(record_id) ON DELETE CASCADE,
+    yolo_label VARCHAR(100) NOT NULL,
+    food_name_zh VARCHAR(100) NOT NULL,
+    confidence DOUBLE PRECISION NOT NULL,
+    area DOUBLE PRECISION NOT NULL,
+    density_factor NUMERIC(10, 6) NOT NULL DEFAULT 1,
+    estimated_weight_g DOUBLE PRECISION NOT NULL DEFAULT 0,
+    carbon_factor NUMERIC(10, 6) NOT NULL DEFAULT 0,
+    carbon_emission_kg NUMERIC(12, 6) NOT NULL DEFAULT 0
+);
+
+INSERT INTO food_carbon_factors (yolo_label, food_name_zh, category, carbon_factor, density_factor, source)
+VALUES
+    ('apple', 'Apples', 'fruit', 0.430000, 1.0, 'food-product:apples_2010 | lookup:apples | Mapped to the general Apples commodity from food-product.'),
+    ('asparagus', 'Asparagus, green, raw', 'vegetable', 1.640000, 1.0, 'foodcarbon:20279 | lookup:asparagus_green_raw | Mapped to a raw asparagus entry.'),
+    ('bacon', 'Bacon, back', 'meat', 8.360000, 1.0, 'foodcarbon:28727 | lookup:bacon_back | Mapped to the closest direct bacon entry.'),
+    ('baked potatoes', 'Potato, roasted/baked', 'starch', 0.852000, 1.0, 'foodcarbon:4026 | lookup:potato_roasted_baked | Mapped to roasted/baked potato.'),
+    ('banana', 'Bananas', 'fruit', 0.860000, 1.0, 'food-product:bananas_2010 | lookup:bananas | Mapped to the general Bananas commodity from food-product.'),
+    ('beans', 'Broad bean, cooked', 'vegetable', 0.585000, 1.0, 'foodcarbon:20500 | lookup:broad_bean_cooked | Mapped to broad bean, cooked.'),
+    ('black bean', 'Broad bean, cooked', 'vegetable', 0.585000, 1.0, 'foodcarbon:20500 | lookup:broad_bean_cooked | Mapped to broad bean, cooked, as the chosen bean proxy.'),
+    ('blueberries', 'Blueberry, raw', 'fruit', 0.922000, 1.0, 'foodcarbon:13028 | lookup:blueberry_raw | Mapped to raw blueberry.'),
+    ('boiled egg', 'Egg, hard-boiled', 'egg', 2.740000, 1.0, 'foodcarbon:22010 | lookup:egg_hard_boiled | Mapped to hard-boiled egg.'),
+    ('bread', 'Bread, French bread, baguette', 'starch', 0.776000, 1.0, 'foodcarbon:7001 | lookup:bread_french_bread_baguette | Mapped to plain baguette bread.'),
+    ('breaded', 'Chicken, nugget, breaded croquette', 'meat', 3.870000, 1.0, 'foodcarbon:36027 | lookup:chicken_nugget_breaded_croquette | Mapped to breaded chicken nugget as the chosen breaded-item proxy.'),
+    ('brocolis', 'Broccoli, raw', 'vegetable', 0.951000, 1.0, 'foodcarbon:20057 | lookup:broccoli_raw | Mapped by spelling normalization from brocolis to broccoli.'),
+    ('cabbage', 'Green cabbage, raw', 'vegetable', 0.848000, 1.0, 'foodcarbon:20069 | lookup:green_cabbage_raw | Mapped to raw green cabbage.'),
+    ('cabidela rice', 'Rice', 'starch', 4.450000, 1.0, 'food-product:rice_2010 | lookup:rice | Mapped to generic rice.'),
+    ('cake', 'Brownie (chocolate cake)', 'dessert', 8.360000, 1.0, 'foodcarbon:23032 | lookup:brownie_chocolate_cake | Mapped to brownie chocolate cake as the chosen cake proxy.'),
+    ('carrot', 'Carrot, raw', 'vegetable', 0.396000, 1.0, 'foodcarbon:20009 | lookup:carrot_raw | Mapped to raw carrot.'),
+    ('cereals', 'Breakfast cereals, corn flakes, plain, fortified with vitamins and chemical elements', 'starch', 3.400000, 1.0, 'foodcarbon:32005 | lookup:breakfast_cereals_corn_flakes_plain_fortified_with_vitamins_and_chemical_elements | Mapped to plain corn-flakes breakfast cereals.'),
+    ('cheese', 'Cheese', 'dairy', 23.880000, 1.0, 'food-product:cheese_2010 | lookup:cheese | Exact commodity match from food-product.'),
+    ('chicken', 'Chicken, breast, without skin, raw', 'meat', 5.580000, 1.0, 'foodcarbon:36017 | lookup:chicken_breast_without_skin_raw | Mapped to raw chicken breast without skin.'),
+    ('chicken steak', 'Chicken, breast, without skin, raw', 'meat', 5.580000, 1.0, 'foodcarbon:36017 | lookup:chicken_breast_without_skin_raw | Mapped to the closest chicken cut entry.'),
+    ('chips', 'French fries or chips, frozen, deep-fried', 'starch', 1.460000, 1.0, 'foodcarbon:4032 | lookup:french_fries_or_chips_frozen_deep_fried | Mapped to deep-fried French fries/chips.'),
+    ('chorizo', 'Salami, pure pork', 'meat', 8.250000, 1.0, 'foodcarbon:30351 | lookup:salami_pure_pork | Mapped to pure pork salami as the chosen chorizo proxy.'),
+    ('coffee', 'Coffee', 'beverage', 28.530000, 1.0, 'food-product:coffee_2010 | lookup:coffee | Exact commodity match from food-product.'),
+    ('cucumber', 'Cucumber, pulp and peel, raw', 'vegetable', 0.512000, 1.0, 'foodcarbon:20019 | lookup:cucumber_pulp_and_peel_raw | Mapped to raw cucumber with peel.'),
+    ('cutlet', 'Lamb cutlet, grilled', 'meat', 52.400000, 1.0, 'foodcarbon:21501 | lookup:lamb_cutlet_grilled | Mapped to grilled lamb cutlet.'),
+    ('fish', 'Fish (farmed)', 'seafood', 13.630000, 1.0, 'food-product:fish_farmed_2010 | lookup:fish_farmed | Mapped to the generic Fish (farmed) commodity from food-product.'),
+    ('fish hake', 'European hake, raw', 'seafood', 7.590000, 1.0, 'foodcarbon:26044 | lookup:european_hake_raw | Mapped to raw European hake.'),
+    ('french fries', 'French fries or chips, frozen, deep-fried', 'starch', 1.460000, 1.0, 'foodcarbon:4032 | lookup:french_fries_or_chips_frozen_deep_fried | Mapped to deep-fried French fries.'),
+    ('fried cod', 'Cod, raw', 'seafood', 12.000000, 1.0, 'foodcarbon:26043 | lookup:cod_raw | Mapped to cod as the closest direct species entry.'),
+    ('fried egg', 'Egg, fried without added fat', 'egg', 2.400000, 1.0, 'foodcarbon:22505 | lookup:egg_fried_without_added_fat | Mapped to fried egg without added fat.'),
+    ('gelatin', 'Gelatine, dried', 'dessert', 2.620000, 1.0, 'foodcarbon:11007 | lookup:gelatine_dried | Mapped by spelling normalization from gelatin to gelatine.'),
+    ('grape', 'Grape, raw', 'fruit', 0.510000, 1.0, 'foodcarbon:13112 | lookup:grape_raw | Mapped to raw grape.'),
+    ('greens', 'Green cabbage, raw', 'vegetable', 0.848000, 1.0, 'foodcarbon:20069 | lookup:green_cabbage_raw | Mapped to raw green cabbage as the chosen greens proxy.'),
+    ('grilled chop', 'Pork, chop, grilled', 'meat', 8.650000, 1.0, 'foodcarbon:28101 | lookup:pork_chop_grilled | Mapped to grilled pork chop.'),
+    ('grilled steak', 'Beef, rump steak, grilled', 'meat', 36.600000, 1.0, 'foodcarbon:6207 | lookup:beef_rump_steak_grilled | Mapped to grilled beef rump steak.'),
+    ('ham', 'Cooked ham, choice', 'meat', 7.650000, 1.0, 'foodcarbon:28910 | lookup:cooked_ham_choice | Mapped to cooked ham, choice.'),
+    ('lasagna', 'Lasagna or cannelloni with meat (bolognese sauce)', 'prepared_meal', 6.100000, 1.0, 'foodcarbon:25081 | lookup:lasagna_or_cannelloni_with_meat_bolognese_sauce | Mapped to meat lasagna / cannelloni with bolognese sauce.'),
+    ('lettuce', 'Lettuce, raw', 'vegetable', 0.868000, 1.0, 'foodcarbon:20031 | lookup:lettuce_raw | Mapped to raw lettuce.'),
+    ('lime', 'Lime, pulp, raw', 'fruit', 0.570000, 1.0, 'foodcarbon:13067 | lookup:lime_pulp_raw | Mapped to raw lime pulp.'),
+    ('mashed potatoes', 'Mashed potatoes w fresh tome cheese', 'starch', 3.930000, 1.0, 'foodcarbon:4041 | lookup:mashed_potatoes_w_fresh_tome_cheese | Mapped to mashed potatoes with fresh tome cheese.'),
+    ('meatballs', 'Beef, meat balls, cooked', 'meat', 32.200000, 1.0, 'foodcarbon:25163 | lookup:beef_meat_balls_cooked | Mapped to cooked beef meat balls.'),
+    ('melon', 'Melon, cantaloupe (ex Cavaillon or Charentais melon), pulp, raw', 'fruit', 0.979000, 1.0, 'foodcarbon:13026 | lookup:melon_cantaloupe_ex_cavaillon_or_charentais_melon_pulp_raw | Mapped to raw cantaloupe melon pulp.'),
+    ('minced meat', 'Poultry, minced meat', 'meat', 7.470000, 1.0, 'foodcarbon:28927 | lookup:poultry_minced_meat | Mapped to poultry minced meat.'),
+    ('mussel', 'Mediterranean mussel, raw', 'seafood', 5.330000, 1.0, 'foodcarbon:10026 | lookup:mediterranean_mussel_raw | Mapped to raw Mediterranean mussel.'),
+    ('omelet', 'Omelette, with cheese', 'egg', 2.900000, 1.0, 'foodcarbon:22506 | lookup:omelette_with_cheese | Mapped to omelette with cheese.'),
+    ('onion', 'Onion, raw', 'vegetable', 0.421000, 1.0, 'foodcarbon:20034 | lookup:onion_raw | Mapped to raw onion.'),
+    ('pasta', 'Dried pasta, raw', 'starch', 1.980000, 1.0, 'foodcarbon:9810 | lookup:dried_pasta_raw | Mapped to generic dried pasta.'),
+    ('pineapple', 'Pineapple, pulp, raw', 'fruit', 1.360000, 1.0, 'foodcarbon:13002 | lookup:pineapple_pulp_raw | Mapped to raw pineapple pulp.'),
+    ('pizza', 'Pizza, cheese and tomato or Margherita pizza', 'prepared_meal', 1.840000, 1.0, 'foodcarbon:25404 | lookup:pizza_cheese_and_tomato_or_margherita_pizza | Mapped to cheese and tomato / Margherita pizza.'),
+    ('pork', 'Cooked pork shoulder, choice', 'meat', 7.650000, 1.0, 'foodcarbon:28911 | lookup:cooked_pork_shoulder_choice | Mapped to cooked pork shoulder, choice.'),
+    ('pork belly', 'Pork, belly, raw', 'meat', 6.580000, 1.0, 'foodcarbon:28002 | lookup:pork_belly_raw | Mapped to raw pork belly.'),
+    ('pork loin', 'Pork, loin, raw', 'meat', 6.580000, 1.0, 'foodcarbon:28302 | lookup:pork_loin_raw | Mapped to raw pork loin.'),
+    ('rice', 'Rice', 'starch', 4.450000, 1.0, 'food-product:rice_2010 | lookup:rice | Exact commodity match from food-product.'),
+    ('salmon', 'Salmon, raw, farmed', 'seafood', 5.550000, 1.0, 'foodcarbon:26036 | lookup:salmon_raw_farmed | Mapped to raw farmed salmon.'),
+    ('scrambled eggs', 'Egg, scrambled, with added fat', 'egg', 3.440000, 1.0, 'foodcarbon:22502 | lookup:egg_scrambled_with_added_fat | Mapped to scrambled egg with added fat.'),
+    ('scrambled eggs with bacon', 'Egg, scrambled, with added fat', 'egg', 3.440000, 1.0, 'foodcarbon:22502 | lookup:egg_scrambled_with_added_fat | Mapped to scrambled egg with added fat as the chosen proxy for scrambled eggs with bacon.'),
+    ('soup', 'Soup, chicken and vegetables, prepacked, to be reheated', 'prepared_meal', 0.140000, 1.0, 'foodcarbon:25901 | lookup:soup_chicken_and_vegetables_prepacked_to_be_reheated | Mapped to prepacked chicken and vegetables soup.'),
+    ('spaghetti', 'Bolognese-style pasta (spaghetti, tagliatelle…)', 'prepared_meal', 6.510000, 1.0, 'foodcarbon:25085 | lookup:bolognese_style_pasta_spaghetti_tagliatelle | Mapped to bolognese-style pasta (spaghetti/tagliatelle).'),
+    ('steak', 'Beef, flank steak, grilled/pan-fried', 'meat', 36.700000, 1.0, 'foodcarbon:6211 | lookup:beef_flank_steak_grilled_pan_fried | Mapped to grilled/pan-fried beef flank steak.'),
+    ('steaks with mushrooms', 'Beef, flank steak, grilled/pan-fried', 'meat', 36.700000, 1.0, 'foodcarbon:6211 | lookup:beef_flank_steak_grilled_pan_fried | Mapped to grilled/pan-fried beef flank steak as the chosen base for steaks with mushrooms.'),
+    ('stewed veal', 'Veal, escalope, cooked', 'meat', 29.400000, 1.0, 'foodcarbon:6520 | lookup:veal_escalope_cooked | Mapped to cooked veal escalope.'),
+    ('strawberry', 'Strawberry, raw', 'fruit', 0.533000, 1.0, 'foodcarbon:13014_1 | lookup:strawberry_raw | Mapped to raw strawberry.'),
+    ('toasted bread', 'Toasted bread, home-made', 'starch', 1.350000, 1.0, 'foodcarbon:7004 | lookup:toasted_bread_home_made | Mapped to home-made toasted bread.'),
+    ('tomato', 'Tomato, raw', 'vegetable', 0.750000, 1.0, 'foodcarbon:20047_1 | lookup:tomato_raw | Mapped to raw tomato.'),
+    ('tuna', 'Skipjack tuna, raw', 'seafood', 4.950000, 1.0, 'foodcarbon:26068 | lookup:skipjack_tuna_raw | Mapped to raw skipjack tuna.'),
+    ('turkey steak', 'Turkey, escalope, raw', 'meat', 5.580000, 1.0, 'foodcarbon:36304 | lookup:turkey_escalope_raw | Mapped to raw turkey escalope.'),
+    ('vegetables', 'Diced mixed vegetables, canned, drained', 'vegetable', 1.130000, 1.0, 'foodcarbon:20051 | lookup:diced_mixed_vegetables_canned_drained | Mapped to diced mixed vegetables, canned, drained.'),
+    ('watermelon', 'Watermelon, pulp, raw', 'fruit', 0.680000, 1.0, 'foodcarbon:13036 | lookup:watermelon_pulp_raw | Mapped to raw watermelon pulp.')
+ON CONFLICT (yolo_label) DO NOTHING;

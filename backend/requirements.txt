@@ -1,0 +1,16 @@
+# Python dependencies for the FastAPI backend, YOLO inference, and database access.
+fastapi[standard]
+uvicorn
+gunicorn
+ultralytics
+torch
+torchvision
+opencv-python-headless
+Pillow
+numpy
+python-multipart
+SQLAlchemy
+psycopg2-binary
+pydantic
+python-dotenv
+email-validator

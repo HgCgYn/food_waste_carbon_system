@@ -1,0 +1,49 @@
+# Docker Compose stack for React frontend, FastAPI backend, PostgreSQL, and pgAdmin.
+services:
+  frontend:
+    build: ./frontend
+    container_name: food-waste-carbon-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8001
+      VITE_PROXY_TARGET: http://backend:8000
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: food-waste-carbon-backend
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend/storage:/app/storage
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: food-waste-carbon-postgres
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: food-waste-carbon-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:

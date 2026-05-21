@@ -153,6 +153,12 @@ docker compose down -v
 docker compose up --build -d
 ```
 
+開發時要啟動整個系統：
+
+```bash
+docker compose up --build -d
+```
+
 一般重啟服務：
 
 ```bash
@@ -165,6 +171,43 @@ docker compose up --build -d
 ```bash
 docker compose up --build -d backend
 ```
+
+如果你暫時不開發，想把本機 port 釋放掉，請停止容器：
+
+```bash
+docker compose down
+```
+
+這會關掉：
+
+- `frontend` 的 `5173`
+- `backend` 的 `8000`
+- `postgres` 相關容器
+
+如果你只想暫停容器但保留 compose 狀態，也可以：
+
+```bash
+docker compose stop
+```
+
+之後重新開啟：
+
+```bash
+docker compose start
+```
+
+差異如下：
+
+- `docker compose down`
+  - 停掉並移除容器與 network
+  - 會釋放本機 port
+- `docker compose stop`
+  - 只停止容器
+  - 仍然會釋放本機 port
+  - 之後可用 `docker compose start` 快速恢復
+- `docker compose down -v`
+  - 連資料庫 volume 一起清掉
+  - 會重新初始化 PostgreSQL 與 `init.sql`
 
 啟動後可使用：
 
@@ -183,11 +226,33 @@ pgAdmin 預設位置：
 
 ## 開發備註
 
-- YOLO 權重檔位於 `backend/server/yolo/weights/yolov11-x-weights-v6.pt`
+- YOLO 權重檔應放在 `backend/server/yolo/weights/yolov11-x-weights-v6.pt`
+- 權重檔不納入 Git 版本控制，請從官方 release 下載：
+  - `https://github.com/joaopferreira19/Food-Waste-Detection-using-YOLOv11/releases/tag/0.3.0`
+- 下載後請將 `yolov11-x-weights-v6.pt` 放到：
+  - `backend/server/yolo/weights/`
 - YOLO 載入邏輯位於 `backend/server/yolo/yolo.py`
 - 碳排計算邏輯位於 `backend/services/carbon_calculator.py`
 - 因子查詢邏輯位於 `backend/services/food_factor_service.py`
 - PostgreSQL 初始化檔位於 `database/init.sql`
+
+## 權重檔準備
+
+如果你是第一次設定專案，請先建立權重目錄並放入模型檔：
+
+```bash
+mkdir -p backend/server/yolo/weights
+```
+
+接著從以下 release 下載 `yolov11-x-weights-v6.pt`：
+
+- `https://github.com/joaopferreira19/Food-Waste-Detection-using-YOLOv11/releases/tag/0.3.0`
+
+放入後的最終路徑應為：
+
+```text
+backend/server/yolo/weights/yolov11-x-weights-v6.pt
+```
 
 ## 重新建置提醒
 

@@ -1,0 +1,39 @@
+# Ignore local caches, build output, secrets, and generated runtime files for this project.
+
+# Environment files
+.env.local
+.env.*.local
+.env
+
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Backend runtime artifacts
+backend/storage/
+backend/*.log
+backend/server/yolo/weights/*.pt
+
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Database / local containers
+postgres_data/
+pgadmin_data/
