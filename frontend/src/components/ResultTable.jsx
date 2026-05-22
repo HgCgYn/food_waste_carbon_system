@@ -34,6 +34,8 @@ const tdStyle = {
 const statusStyle = (matched) => ({
   display: "inline-flex",
   alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
   padding: "6px 14px",
   borderRadius: "999px",
   fontSize: "0.875rem",
