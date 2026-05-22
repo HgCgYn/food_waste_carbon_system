@@ -304,7 +304,6 @@ export default function UploadForm({
       onSubmitResult(result);
     } catch (err) {
       onErrorChange(err.message || "分析失敗，請稍後再試。");
-      onSubmitResult(null);
     } finally {
       onLoadingChange(false);
     }
@@ -351,9 +350,9 @@ export default function UploadForm({
 
         {/* Step 2 (Wide Column) */}
         <div>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "16px" }}>
-            <div style={{ display: "flex", gap: "24px", alignItems: "baseline" }}>
-              <p style={{ ...sectionTitleStyle, margin: 0 }}>Step2</p>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "24px" }}>
+            <div>
+              <p style={{ ...sectionTitleStyle, marginBottom: "4px" }}>Step2</p>
               <p style={{ ...sectionSubStyle, margin: 0 }}>輸入照片</p>
             </div>
             
@@ -432,10 +431,8 @@ export default function UploadForm({
         }}
       >
         <div>
-          <div style={{ display: "flex", gap: "24px", alignItems: "baseline", marginBottom: "16px" }}>
-            <p style={{ ...sectionTitleStyle, margin: 0 }}>Step3</p>
-            <p style={{ ...sectionSubStyle, margin: 0 }}>輸入整盤廚餘重量（g）</p>
-          </div>
+          <p style={sectionTitleStyle}>Step3</p>
+          <p style={sectionSubStyle}>輸入整盤廚餘重量（g）</p>
           <input
             id="weight"
             type="number"
