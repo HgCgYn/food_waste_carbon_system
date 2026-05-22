@@ -196,6 +196,16 @@ export default function UploadForm({
     setFileTouched(true);
     setCameraError("");
     event.target.value = "";
+
+    // NOTE: 選圖成功後，絲滑捲動到 Step 3 引導使用者繼續填寫重量
+    if (chosen) {
+      setTimeout(() => {
+        const step3 = document.getElementById("weight");
+        if (step3) {
+          step3.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+    }
   };
 
   const stopCamera = () => {

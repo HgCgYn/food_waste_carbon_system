@@ -1,6 +1,6 @@
 // Summary card for View B — Exact layout matching design 5.png.
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IconSearch, IconArrowRight } from "./Icons";
 import Button from "./Button";
 
@@ -140,6 +140,18 @@ const actionButtonStyle = {
  * CarbonSummary — View B result overview card.
  */
 export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) {
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    // 數字動畫長度為 2000ms，我們等動畫完成後稍微延遲 (2100ms) 再自動往下捲動
+    const timer = setTimeout(() => {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    }, 2100);
+    return () => clearTimeout(timer);
+  }, [result]);
+
   return (
     <div style={{ display: "grid", gap: "32px" }}>
       {/* Title */}
@@ -233,7 +245,7 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
       </div>
 
       {/* Action buttons */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", flexWrap: "wrap", marginTop: "16px" }}>
+      <div ref={bottomRef} style={{ display: "flex", justifyContent: "flex-end", gap: "16px", flexWrap: "wrap", marginTop: "16px" }}>
         <Button id="btn-analyse-other" type="button" onClick={() => setTimeout(onAnalyseOther, 250)} style={actionButtonStyle}>
           <IconSearch /> 分析其它廚餘
         </Button>
