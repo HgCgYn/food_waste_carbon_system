@@ -1,12 +1,44 @@
 // Summary card for View B — Exact layout matching design 5.png.
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { IconSearch, IconArrowRight } from "./Icons";
 import Button from "./Button";
 
 const GREEN = "#b3d85a"; // Matching the bright green
+const NUMBER_GREEN = "#86ab32"; // Darker green for readable numbers
 const TEXT_DARK = "#111827";
 const GRAY_BG = "#f3f4f6";
+
+const CountUpNumber = ({ value, decimals = 0, suffix = "" }) => {
+  const [current, setCurrent] = useState(0);
+  const target = Number(value) || 0;
+
+  useEffect(() => {
+    if (target === 0) {
+      setCurrent(0);
+      return;
+    }
+    let start = null;
+    const duration = 1500; // 1.5 seconds
+
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = timestamp - start;
+      const percentage = Math.min(progress / duration, 1);
+      const easePercentage = percentage === 1 ? 1 : 1 - Math.pow(2, -10 * percentage);
+      
+      setCurrent(target * easePercentage);
+      
+      if (percentage < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    
+    window.requestAnimationFrame(step);
+  }, [target]);
+
+  return <>{current.toFixed(decimals)}{suffix}</>;
+};
 
 const cardStyle = {
   background: GRAY_BG,
@@ -24,18 +56,47 @@ const metricLabelStyle = {
   marginBottom: "8px",
 };
 
+const auroraTextStyle = {
+  background: "linear-gradient(120deg, #b3d85a, #84cc16, #4ade80, #a3e635, #b3d85a)",
+  backgroundSize: "300% 300%",
+  animation: "aurora-flow 12s ease infinite",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+  color: "transparent",
+};
+
+const iconSvgStr = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 18v-2'/%3E%3Cpath d='M12 18v-4'/%3E%3Cpath d='M16 18v-6'/%3E%3C/svg%3E";
+
+const auroraIconStyle = {
+  display: "inline-block",
+  width: "1em",
+  height: "1em",
+  background: "linear-gradient(120deg, #b3d85a, #84cc16, #4ade80, #a3e635, #b3d85a)",
+  backgroundSize: "300% 300%",
+  animation: "aurora-flow 12s ease infinite",
+  WebkitMaskImage: `url("${iconSvgStr}")`,
+  WebkitMaskSize: "contain",
+  WebkitMaskRepeat: "no-repeat",
+  WebkitMaskPosition: "center",
+  maskImage: `url("${iconSvgStr}")`,
+  maskSize: "contain",
+  maskRepeat: "no-repeat",
+  maskPosition: "center",
+};
+
 const metricValueStyle = {
   fontSize: "clamp(2.5rem, 4vw, 3.5rem)",
   fontWeight: 900,
-  color: GREEN,
   lineHeight: 1.1,
+  ...auroraTextStyle,
 };
 
 const metricSmallValueStyle = {
   fontSize: "2rem",
   fontWeight: 900,
-  color: GREEN,
   lineHeight: 1.1,
+  ...auroraTextStyle,
 };
 
 const metricSecondaryLabelStyle = {
@@ -76,7 +137,8 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
   return (
     <div style={{ display: "grid", gap: "32px" }}>
       {/* Title */}
-      <h1 style={{ fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 900, color: TEXT_DARK }}>
+      <h1 style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 900, color: TEXT_DARK }}>
+        <span style={auroraIconStyle} />
         分析結果報告
       </h1>
 
@@ -94,19 +156,19 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
             <div>
               <p style={metricLabelStyle}>總碳排量</p>
               <p style={metricValueStyle}>
-                {Number(result?.total_carbon_emission_kg ?? 0).toFixed(6)} kg
+                <CountUpNumber value={result?.total_carbon_emission_kg} decimals={6} suffix=" kg" />
               </p>
             </div>
             <div>
               <p style={metricLabelStyle}>廚餘比例</p>
               <p style={metricValueStyle}>
-                {Number(result?.waste_percentage ?? 0).toFixed(2)} %
+                <CountUpNumber value={result?.waste_percentage} decimals={2} suffix=" %" />
               </p>
             </div>
             <div>
               <p style={metricLabelStyle}>整盤重量</p>
               <p style={metricValueStyle}>
-                {Number(result?.total_weight_g ?? 0).toFixed(2)} g
+                <CountUpNumber value={result?.total_weight_g} decimals={2} suffix=" g" />
               </p>
             </div>
           </div>
@@ -116,13 +178,13 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
             <div>
               <p style={metricSecondaryLabelStyle}>已對應項目</p>
               <p style={metricSmallValueStyle}>
-                {Number(result?.matched_item_count ?? 0)}
+                <CountUpNumber value={result?.matched_item_count} decimals={0} />
               </p>
             </div>
             <div>
               <p style={metricSecondaryLabelStyle}>未對應項目</p>
               <p style={metricSmallValueStyle}>
-                {Number(result?.unmatched_item_count ?? 0)}
+                <CountUpNumber value={result?.unmatched_item_count} decimals={0} />
               </p>
             </div>
           </div>
@@ -132,19 +194,19 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
             <div>
               <p style={metricSecondaryLabelStyle}>Food Area</p>
               <p style={metricSecondaryValueStyle}>
-                {Number(result?.food_area ?? 0).toFixed(2)}
+                <CountUpNumber value={result?.food_area} decimals={2} />
               </p>
             </div>
             <div>
               <p style={metricSecondaryLabelStyle}>Garbage Area</p>
               <p style={metricSecondaryValueStyle}>
-                {Number(result?.garbage_area ?? 0).toFixed(2)}
+                <CountUpNumber value={result?.garbage_area} decimals={2} />
               </p>
             </div>
             <div>
               <p style={metricSecondaryLabelStyle}>Plate Area</p>
               <p style={metricSecondaryValueStyle}>
-                {Number(result?.plate_area ?? 0).toFixed(2)}
+                <CountUpNumber value={result?.plate_area} decimals={2} />
               </p>
             </div>
           </div>
