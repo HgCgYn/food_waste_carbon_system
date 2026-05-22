@@ -1,46 +1,48 @@
-// Image preview component for showing base64-encoded detection and clustering outputs.
+// Image preview card for View C — exact match for design 6.png.
 
-const wrapperStyle = {
-  background: "rgba(255,255,255,0.82)",
+const cardStyle = {
+  background: "#f3f4f6", // Very light gray
   borderRadius: "24px",
-  padding: "24px",
-  boxShadow: "0 20px 50px rgba(53, 78, 55, 0.12)",
-  display: "grid",
-  gap: "16px",
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column",
 };
 
-export default function ImagePreview({ title, imageBase64 }) {
-  const src = imageBase64 ? `data:image/jpeg;base64,${imageBase64}` : "";
+const titleStyle = {
+  padding: "24px 32px 16px",
+  fontSize: "1.5rem",
+  fontWeight: 900,
+  color: "#111827",
+  margin: 0,
+};
 
+const placeholderStyle = {
+  width: "100%",
+  aspectRatio: "4/3",
+  display: "grid",
+  placeItems: "center",
+  color: "#6b7280",
+  fontSize: "1.125rem",
+  fontWeight: 700,
+  background: "#e5e7eb",
+};
+
+/**
+ * ImagePreview — displays a labelled image card.
+ */
+export default function ImagePreview({ title, imageBase64 }) {
   return (
-    <section style={wrapperStyle}>
-      <h2 style={{ margin: 0 }}>{title}</h2>
-      {src ? (
+    <div style={cardStyle}>
+      <p style={titleStyle}>{title}</p>
+      {imageBase64 ? (
         <img
-          src={src}
+          src={`data:image/jpeg;base64,${imageBase64}`}
           alt={title}
-          style={{
-            width: "100%",
-            borderRadius: "18px",
-            objectFit: "cover",
-            minHeight: "260px",
-            maxHeight: "520px",
-          }}
+          style={{ display: "block", width: "100%", height: "auto", objectFit: "contain" }}
         />
       ) : (
-        <div
-          style={{
-            minHeight: "260px",
-            borderRadius: "18px",
-            border: "1px dashed #b5c4b3",
-            display: "grid",
-            placeItems: "center",
-            color: "#5b6b61",
-          }}
-        >
-          尚無圖片
-        </div>
+        <div style={placeholderStyle}>尚無圖片</div>
       )}
-    </section>
+    </div>
   );
 }
