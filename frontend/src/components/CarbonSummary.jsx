@@ -141,6 +141,7 @@ const actionButtonStyle = {
  */
 export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) {
   const bottomRef = useRef(null);
+  const carDistanceKm = (Number(result?.total_carbon_emission_kg) || 0) * 4;
 
   useEffect(() => {
     // 數字動畫長度為 2000ms，我們等動畫完成後稍微延遲 (2100ms) 再自動往下捲動
@@ -200,6 +201,12 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
               <p style={metricLabelStyle}>整盤重量</p>
               <p style={metricValueStyle}>
                 <CountUpNumber value={result?.total_weight_g} decimals={2} suffix=" g" />
+              </p>
+            </div>
+            <div>
+              <p style={metricLabelStyle}>汽車行駛距離</p>
+              <p style={metricValueStyle}>
+                <CountUpNumber value={carDistanceKm} decimals={2} suffix=" km" />
               </p>
             </div>
           </div>
