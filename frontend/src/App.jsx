@@ -1,190 +1,403 @@
-// Main React screen for image upload, weight input, and waste carbon analysis output.
+// Main application shell managing three views: form, summary, and detail.
+// View transitions between summary and detail use a horizontal slide animation.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import UploadForm from "./components/UploadForm";
+import CarbonSummary from "./components/CarbonSummary";
 import ImagePreview from "./components/ImagePreview";
 import ResultTable from "./components/ResultTable";
-import CarbonSummary from "./components/CarbonSummary";
+import { IconArrowLeft } from "./components/Icons";
 
-const loadingKeyframes = `
-  @keyframes analysisPulse {
-    0%,
-    100% {
-      opacity: 0.45;
-      transform: scale(0.92);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
+// ─── Global keyframe injection ───────────────────────────────────────────────
+
+const globalStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans TC', 'Avenir Next', sans-serif;
+    background: #fff;
+    color: #111;
+    -webkit-font-smoothing: antialiased;
   }
 
-  @keyframes analysisShimmer {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
+  @keyframes analysisPulse {
+    0%, 100% { opacity: 0.45; transform: scale(0.92); }
+    50%       { opacity: 1;    transform: scale(1); }
   }
 
   @keyframes overlayFloat {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-6px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
   }
+
+  /* Slide containers */
+  .result-viewport {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .result-panel {
+    width: 100%;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .result-panel--summary {
+    position: relative;
+  }
+
+  .result-panel--detail {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  /* Summary visible, detail hidden to the right */
+  .slide-summary .result-panel--summary { transform: translateX(0); }
+  .slide-summary .result-panel--detail  { transform: translateX(100%); }
+
+  /* Detail visible, summary hidden to the left */
+  .slide-detail .result-panel--summary { transform: translateX(-100%); }
+  .slide-detail .result-panel--detail  { transform: translateX(0); }
 `;
 
-const appStyle = {
-  minHeight: "100vh",
-  padding: "32px 20px 48px",
-  background:
-    "radial-gradient(circle at top left, #f5d0a9 0%, #f7efe4 30%, #dce7d5 100%)",
-  color: "#1f2933",
-  fontFamily: '"Avenir Next", "Noto Sans TC", sans-serif',
-};
+// ─── Loading overlay ──────────────────────────────────────────────────────────
 
-const shellStyle = {
-  maxWidth: "1200px",
-  margin: "0 auto",
-  display: "grid",
-  gap: "24px",
-};
+function LoadingOverlay() {
+  const dotDelay = ["0s", "0.18s", "0.36s"];
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(22, 34, 26, 0.46)",
+        backdropFilter: "blur(10px)",
+        display: "grid",
+        placeItems: "center",
+        zIndex: 1000,
+        padding: "24px",
+      }}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div
+        style={{
+          width: "min(400px, 100%)",
+          background: "rgba(255,255,255,0.96)",
+          borderRadius: "28px",
+          padding: "36px 28px",
+          boxShadow: "0 30px 80px rgba(25, 41, 30, 0.28)",
+          display: "grid",
+          gap: "20px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "72px",
+            height: "72px",
+            margin: "0 auto",
+            borderRadius: "22px",
+            display: "grid",
+            placeItems: "center",
+            animation: "overlayFloat 1.6s ease-in-out infinite",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "center", gap: "10px" }} aria-hidden="true">
+            {dotDelay.map((delay, i) => (
+              <span
+                key={i}
+                style={{
+                  width: "14px",
+                  height: "14px",
+                  borderRadius: "999px",
+                  background: "#6abf4b",
+                  animation: "analysisPulse 1s ease-in-out infinite",
+                  animationDelay: delay,
+                  display: "block",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        <div style={{ display: "grid", gap: "8px" }}>
+          <strong style={{ fontSize: "1.25rem", color: "#111" }}>正在分析中</strong>
+          <p style={{ color: "#555", lineHeight: 1.7, fontSize: "0.95rem" }}>
+            系統正在辨識餐盤內容、估算重量，並生成偵測結果圖片。
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-const headerStyle = {
-  display: "grid",
-  gap: "8px",
-};
+// ─── App ──────────────────────────────────────────────────────────────────────
 
-const titleStyle = {
-  margin: 0,
-  fontSize: "clamp(2rem, 4vw, 3.5rem)",
-  fontWeight: 700,
-};
-
-const subtitleStyle = {
-  margin: 0,
-  maxWidth: "720px",
-  lineHeight: 1.6,
-};
-
-const twoColumnStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-  gap: "24px",
-  alignItems: "start",
-};
-
-const overlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(22, 34, 26, 0.42)",
-  backdropFilter: "blur(10px)",
-  display: "grid",
-  placeItems: "center",
-  zIndex: 1000,
-  padding: "24px",
-};
-
-const overlayCardStyle = {
-  width: "min(440px, 100%)",
-  background: "rgba(255,255,255,0.92)",
-  borderRadius: "28px",
-  padding: "28px 24px",
-  boxShadow: "0 30px 80px rgba(25, 41, 30, 0.22)",
-  display: "grid",
-  gap: "18px",
-  textAlign: "center",
-};
-
-const overlaySpinnerStyle = {
-  width: "72px",
-  height: "72px",
-  margin: "0 auto",
-  borderRadius: "22px",
-  background:
-    "linear-gradient(135deg, rgba(45,106,79,0.16), rgba(160,196,163,0.42), rgba(45,106,79,0.16))",
-  display: "grid",
-  placeItems: "center",
-  animation: "analysisShimmer 2.2s linear infinite, overlayFloat 1.6s ease-in-out infinite",
-};
-
-const overlayDotsStyle = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "10px",
-};
-
-const overlayDotStyle = (delay) => ({
-  width: "12px",
-  height: "12px",
-  borderRadius: "999px",
-  background: "#2d6a4f",
-  animation: "analysisPulse 1s ease-in-out infinite",
-  animationDelay: delay,
-});
-
+/**
+ * Root application component.
+ * Manages three views: 'form' (homepage + input), 'summary' (result overview),
+ * 'detail' (images + table). Summary ↔ Detail use a horizontal slide animation.
+ */
 export default function App() {
+  const [view, setView] = useState("form");
+  // 'summary' | 'detail' — controls the CSS slide class
+  const [slideState, setSlideState] = useState("summary");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // NOTE: track height of summary panel so the viewport can size correctly
+  // when detail panel is positioned absolutely on top.
+  const summaryRef = useRef(null);
+  const detailRef = useRef(null);
+
+  /** Called by UploadForm after a successful API response. */
+  const handleSubmitResult = (data) => {
+    setResult(data);
+    setSlideState("summary");
+    setView("result");
+    // Scroll to top of result section
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /** Navigate from Summary → Detail with slide-left animation. */
+  const goToDetail = () => {
+    setSlideState("detail");
+    // Sync viewport height to detail panel height after transition
+    setTimeout(() => {
+      if (detailRef.current && summaryRef.current) {
+        summaryRef.current.style.minHeight = `${detailRef.current.scrollHeight}px`;
+      }
+    }, 460);
+  };
+
+  /** Navigate from Detail → Summary with slide-right animation. */
+  const goToSummary = () => {
+    setSlideState("summary");
+    setTimeout(() => {
+      if (summaryRef.current) {
+        summaryRef.current.style.minHeight = "";
+      }
+    }, 460);
+  };
+
+  /** Reset everything and scroll back to the hero section. */
+  const resetToHome = () => {
+    setView("form");
+    setResult(null);
+    setError("");
+    setSlideState("summary");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <main style={appStyle}>
-      <style>{loadingKeyframes}</style>
-      <div style={shellStyle}>
-        <header style={headerStyle}>
-          <p style={{ margin: 0, letterSpacing: "0.18em", textTransform: "uppercase" }}>
-            Food Waste Carbon System
-          </p>
-          <h1 style={titleStyle}>廚餘碳排放估算系統</h1>
-          <p style={subtitleStyle}>
-            上傳餐盤照片並輸入整盤廚餘重量，系統會使用 YOLOv11 辨識食物殘渣，
-            依據資料庫中的密度係數與碳排係數推估每項食物重量與碳排量。
-            如果某個辨識食物尚未建立碳排對應，系統會保留辨識與重量結果，但不會把它計入總碳排。
-          </p>
-        </header>
+    <>
+      <style>{globalStyles}</style>
 
-        <div style={twoColumnStyle}>
-          <UploadForm
-            loading={loading}
-            onSubmitResult={setResult}
-            onLoadingChange={setLoading}
-            onErrorChange={setError}
-          />
-          <CarbonSummary result={result} loading={loading} error={error} />
-        </div>
+      {/* ── VIEW A: Homepage + Form ────────────────────────────────────────── */}
+      {view === "form" && (
+        <main>
+          {/* Hero section with video background */}
+          <HeroSection />
 
-        <div style={twoColumnStyle}>
-          <ImagePreview title="偵測結果" imageBase64={result?.image_base64} />
-          <ImagePreview title="分群視圖" imageBase64={result?.clustering_image_base64} />
-        </div>
+          {/* Step 1/2/3 input form */}
+          <section
+            style={{
+              maxWidth: "1100px",
+              margin: "0 auto",
+              padding: "56px 24px 80px",
+            }}
+          >
+            <UploadForm
+              loading={loading}
+              onSubmitResult={handleSubmitResult}
+              onLoadingChange={setLoading}
+              onErrorChange={setError}
+              error={error}
+            />
+          </section>
+        </main>
+      )}
 
-        <ResultTable items={result?.objects ?? []} />
-      </div>
-      {loading ? (
-        <div style={overlayStyle} role="status" aria-live="polite" aria-busy="true">
-          <div style={overlayCardStyle}>
-            <div style={overlaySpinnerStyle}>
-              <div style={overlayDotsStyle} aria-hidden="true">
-                <span style={overlayDotStyle("0s")} />
-                <span style={overlayDotStyle("0.18s")} />
-                <span style={overlayDotStyle("0.36s")} />
+      {/* ── VIEW B + C: Results (slide viewport) ──────────────────────────── */}
+      {view === "result" && (
+        <main style={{ padding: "56px 24px 80px" }}>
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            {/* Slide viewport */}
+            <div className={`result-viewport slide-${slideState}`}>
+              {/* Panel B — Summary */}
+              <div className="result-panel result-panel--summary" ref={summaryRef}>
+                <CarbonSummary
+                  result={result}
+                  onAnalyseOther={resetToHome}
+                  onViewDetail={goToDetail}
+                />
               </div>
-            </div>
-            <div style={{ display: "grid", gap: "8px" }}>
-              <strong style={{ fontSize: "1.2rem" }}>正在分析中</strong>
-              <div style={{ color: "#4b5d51", lineHeight: 1.6 }}>
-                系統正在辨識餐盤內容、估算重量，並生成偵測結果圖片。
+
+              {/* Panel C — Detail */}
+              <div className="result-panel result-panel--detail" ref={detailRef}>
+                <DetailView result={result} onBack={goToSummary} />
               </div>
             </div>
           </div>
-        </div>
-      ) : null}
-    </main>
+        </main>
+      )}
+
+      {/* Loading overlay */}
+      {loading && <LoadingOverlay />}
+    </>
+  );
+}
+
+// ─── Hero Section ─────────────────────────────────────────────────────────────
+
+function HeroSection() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        minHeight: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "flex-end",
+        paddingBottom: "48px",
+      }}
+    >
+      {/* Background video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+        }}
+      >
+        <source src="/src/assets/Homepage_video.mp4" type="video/mp4" />
+      </video>
+
+      {/* Dark overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.55) 100%)",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Text content */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          maxWidth: "1100px",
+          margin: "0 auto",
+          padding: "0 24px",
+          width: "100%",
+        }}
+      >
+        <p
+          style={{
+            color: "#fff",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            fontSize: "1.25rem",
+            marginBottom: "12px",
+            textTransform: "uppercase",
+          }}
+        >
+          Food Waste Carbon System
+        </p>
+        <h1
+          style={{
+            color: "#fff",
+            fontSize: "clamp(3rem, 6vw, 5rem)",
+            fontWeight: 900,
+            lineHeight: 1.1,
+            marginBottom: "24px",
+          }}
+        >
+          廚餘碳排放估算系統
+        </h1>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.9)",
+            maxWidth: "760px",
+            lineHeight: 1.8,
+            fontSize: "1.125rem",
+          }}
+        >
+          上傳餐盤照片並輸入整盤廚餘重量，系統會使用 YOLOv11 辨識食物殘渣，
+          依據資料庫中的密度係數與碳排係數推估每項食物重量與碳排量。
+          <br />
+          如果某個辨識食物尚未建立碳排對應，系統會保留辨識與重量結果，但不會把它計入總碳排。
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Detail View (Panel C) ────────────────────────────────────────────────────
+
+/**
+ * Panel C — shows detection images and the recognition result table.
+ * @param {{ result: object, onBack: () => void }} props
+ */
+function DetailView({ result, onBack }) {
+  return (
+    <div style={{ display: "grid", gap: "28px" }}>
+      {/* Back button */}
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button
+          id="btn-back-to-summary"
+          onClick={onBack}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "#b3d85a",
+            color: "#111",
+            border: "none",
+            borderRadius: "999px",
+            padding: "16px 32px",
+            fontWeight: 900,
+            fontSize: "1.125rem",
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          <IconArrowLeft />
+          返回前頁
+        </button>
+      </div>
+
+      {/* Detection images */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: "20px",
+        }}
+      >
+        <ImagePreview title="偵測結果" imageBase64={result?.image_base64} />
+        <ImagePreview title="分群視圖" imageBase64={result?.clustering_image_base64} />
+      </div>
+
+      {/* Recognition table */}
+      <ResultTable items={result?.objects ?? []} />
+    </div>
   );
 }

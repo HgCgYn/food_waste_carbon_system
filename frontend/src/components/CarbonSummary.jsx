@@ -1,79 +1,161 @@
-// Summary card component that highlights total weight, waste ratio, and total carbon.
+// Summary card for View B — Exact layout matching design 5.png.
+
+import { IconSearch, IconArrowRight } from "./Icons";
+
+const GREEN = "#b3d85a"; // Matching the bright green
+const TEXT_DARK = "#111827";
+const GRAY_BG = "#f3f4f6";
 
 const cardStyle = {
-  background: "#203a2a",
-  color: "#f4f1e8",
-  borderRadius: "24px",
-  padding: "24px",
-  display: "grid",
-  gap: "16px",
-  boxShadow: "0 20px 50px rgba(32, 58, 42, 0.22)",
+  background: GRAY_BG,
+  borderRadius: "32px",
+  padding: "48px 56px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "32px",
 };
 
-const metricGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-  gap: "12px",
+const metricLabelStyle = {
+  fontSize: "1.25rem",
+  color: TEXT_DARK,
+  fontWeight: 700,
+  marginBottom: "8px",
 };
 
-const metricStyle = {
-  background: "rgba(255,255,255,0.08)",
-  borderRadius: "18px",
-  padding: "16px",
+const metricValueStyle = {
+  fontSize: "clamp(2.5rem, 4vw, 3.5rem)",
+  fontWeight: 900,
+  color: GREEN,
+  lineHeight: 1.1,
 };
 
-export default function CarbonSummary({ result, loading, error }) {
+const metricSmallValueStyle = {
+  fontSize: "2rem",
+  fontWeight: 900,
+  color: GREEN,
+  lineHeight: 1.1,
+};
+
+const metricSecondaryLabelStyle = {
+  fontSize: "1.125rem",
+  color: TEXT_DARK,
+  fontWeight: 700,
+  marginBottom: "4px",
+};
+
+const metricSecondaryValueStyle = {
+  fontSize: "1.125rem",
+  color: "#4b5563",
+  lineHeight: 1.4,
+  fontWeight: 600,
+};
+
+const actionButtonStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "10px",
+  background: GREEN,
+  color: TEXT_DARK,
+  border: "none",
+  borderRadius: "999px",
+  padding: "16px 32px",
+  fontWeight: 900,
+  fontSize: "1.125rem",
+  cursor: "pointer",
+  fontFamily: "inherit",
+};
+
+/**
+ * CarbonSummary — View B result overview card.
+ */
+export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) {
   return (
-    <section style={cardStyle}>
-      <h2 style={{ margin: 0 }}>分析摘要</h2>
-      <p style={{ margin: 0, lineHeight: 1.6 }}>
-        {error
-          ? error
-          : loading
-            ? "模型正在辨識食物與估算碳排。"
-            : "分析完成後，這裡會顯示總重量、廚餘比例與總碳排放量。"}
-      </p>
-      <div style={metricGridStyle}>
-        <div style={metricStyle}>
-          <div>整盤重量</div>
-          <strong>{Number(result?.total_weight_g ?? 0).toFixed(2)} g</strong>
-        </div>
-        <div style={metricStyle}>
-          <div>廚餘比例</div>
-          <strong>{Number(result?.waste_percentage ?? 0).toFixed(2)} %</strong>
-        </div>
-        <div style={metricStyle}>
-          <div>總碳排量</div>
-          <strong>{Number(result?.total_carbon_emission_kg ?? 0).toFixed(6)} kg</strong>
-        </div>
-        <div style={metricStyle}>
-          <div>已對應項目</div>
-          <strong>{Number(result?.matched_item_count ?? 0)}</strong>
-        </div>
-        <div style={metricStyle}>
-          <div>未對應項目</div>
-          <strong>{Number(result?.unmatched_item_count ?? 0)}</strong>
+    <div style={{ display: "grid", gap: "32px" }}>
+      {/* Title */}
+      <h1 style={{ fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 900, color: TEXT_DARK }}>
+        分析結果報告
+      </h1>
+
+      {/* Metric card */}
+      <div style={cardStyle}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.5fr 1fr 1fr",
+            gap: "48px",
+          }}
+        >
+          {/* Left column — primary metrics */}
+          <div style={{ display: "grid", gap: "32px" }}>
+            <div>
+              <p style={metricLabelStyle}>總碳排量</p>
+              <p style={metricValueStyle}>
+                {Number(result?.total_carbon_emission_kg ?? 0).toFixed(6)} kg
+              </p>
+            </div>
+            <div>
+              <p style={metricLabelStyle}>廚餘比例</p>
+              <p style={metricValueStyle}>
+                {Number(result?.waste_percentage ?? 0).toFixed(2)} %
+              </p>
+            </div>
+            <div>
+              <p style={metricLabelStyle}>整盤重量</p>
+              <p style={metricValueStyle}>
+                {Number(result?.total_weight_g ?? 0).toFixed(2)} g
+              </p>
+            </div>
+          </div>
+
+          {/* Middle column — matched / unmatched */}
+          <div style={{ display: "grid", gap: "32px", alignContent: "start", paddingTop: "12px" }}>
+            <div>
+              <p style={metricSecondaryLabelStyle}>已對應項目</p>
+              <p style={metricSmallValueStyle}>
+                {Number(result?.matched_item_count ?? 0)}
+              </p>
+            </div>
+            <div>
+              <p style={metricSecondaryLabelStyle}>未對應項目</p>
+              <p style={metricSmallValueStyle}>
+                {Number(result?.unmatched_item_count ?? 0)}
+              </p>
+            </div>
+          </div>
+
+          {/* Right column — area metrics */}
+          <div style={{ display: "grid", gap: "32px", alignContent: "start", paddingTop: "12px" }}>
+            <div>
+              <p style={metricSecondaryLabelStyle}>Food Area</p>
+              <p style={metricSecondaryValueStyle}>
+                {Number(result?.food_area ?? 0).toFixed(2)}
+              </p>
+            </div>
+            <div>
+              <p style={metricSecondaryLabelStyle}>Garbage Area</p>
+              <p style={metricSecondaryValueStyle}>
+                {Number(result?.garbage_area ?? 0).toFixed(2)}
+              </p>
+            </div>
+            <div>
+              <p style={metricSecondaryLabelStyle}>Plate Area</p>
+              <p style={metricSecondaryValueStyle}>
+                {Number(result?.plate_area ?? 0).toFixed(2)}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div style={metricGridStyle}>
-        <div style={metricStyle}>
-          <div>Food Area</div>
-          <strong>{Number(result?.food_area ?? 0).toFixed(2)}</strong>
-        </div>
-        <div style={metricStyle}>
-          <div>Garbage Area</div>
-          <strong>{Number(result?.garbage_area ?? 0).toFixed(2)}</strong>
-        </div>
-        <div style={metricStyle}>
-          <div>Plate Area</div>
-          <strong>{Number(result?.plate_area ?? 0).toFixed(2)}</strong>
-        </div>
+
+      {/* Action buttons */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", flexWrap: "wrap", marginTop: "16px" }}>
+        <button id="btn-analyse-other" type="button" onClick={onAnalyseOther} style={actionButtonStyle}>
+          <IconSearch /> 分析其它廚餘
+        </button>
+        <button id="btn-view-detail" type="button" onClick={onViewDetail} style={actionButtonStyle}>
+          查看詳細分析結果 <IconArrowRight />
+        </button>
       </div>
-      {result ? (
-        <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.6, color: "#dbe7d8" }}>
-          未對應碳排資料的食物仍會被辨識並分配重量，但不會被計入總碳排。
-        </p>
-      ) : null}
-    </section>
+    </div>
   );
 }
