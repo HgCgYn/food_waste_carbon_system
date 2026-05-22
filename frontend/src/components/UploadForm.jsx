@@ -112,7 +112,7 @@ const submitButtonStyle = (disabled) => ({
   gap: "12px",
   border: "none",
   borderRadius: "999px",
-  padding: "20px 48px",
+  padding: "28px 48px",
   background: disabled ? GRAY_BG : AURORA_GRADIENT,
   backgroundSize: disabled ? "auto" : "300% 300%",
   animation: disabled ? "none" : "aurora-flow 12s ease infinite",
@@ -452,7 +452,7 @@ export default function UploadForm({
           display: "grid",
           gridTemplateColumns: "1fr 2.5fr",
           gap: "48px",
-          alignItems: "end",
+          alignItems: "center",
         }}
       >
         <div>
