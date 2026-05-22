@@ -88,14 +88,16 @@ const auroraIconStyle = {
 const metricValueStyle = {
   fontSize: "clamp(2.5rem, 4vw, 3.5rem)",
   fontWeight: 900,
-  lineHeight: 1.1,
+  lineHeight: 1.2,
+  paddingBottom: "0.1em",
   ...auroraTextStyle,
 };
 
 const metricSmallValueStyle = {
   fontSize: "2rem",
   fontWeight: 900,
-  lineHeight: 1.1,
+  lineHeight: 1.2,
+  paddingBottom: "0.1em",
   ...auroraTextStyle,
 };
 
@@ -138,7 +140,20 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
     <div style={{ display: "grid", gap: "32px" }}>
       {/* Title */}
       <h1 style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 900, color: TEXT_DARK }}>
-        <span style={auroraIconStyle} />
+        <span style={{
+          display: "inline-block",
+          width: "1em",
+          height: "1em",
+          backgroundColor: TEXT_DARK,
+          WebkitMaskImage: `url("${iconSvgStr}")`,
+          WebkitMaskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskImage: `url("${iconSvgStr}")`,
+          maskSize: "contain",
+          maskRepeat: "no-repeat",
+          maskPosition: "center",
+        }} />
         分析結果報告
       </h1>
 
