@@ -336,7 +336,7 @@ export default function UploadForm({
   const weightHasError = weightTouched && (!weight || Number(weight) <= 0);
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} style={{ display: "grid", gap: "64px" }} noValidate>
+    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={{ display: "grid", gap: "64px" }} noValidate>
       
       {/* ── Step 1 + 2 Row ─────────────────────────────────────────────── */}
       <div
