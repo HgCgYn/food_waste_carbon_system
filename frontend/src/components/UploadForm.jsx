@@ -305,8 +305,7 @@ export default function UploadForm({
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async () => {
 
     if (!file) {
       setFileTouched(true);
@@ -337,7 +336,7 @@ export default function UploadForm({
   const weightHasError = weightTouched && (!weight || Number(weight) <= 0);
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "64px" }} noValidate>
+    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={{ display: "grid", gap: "64px" }} noValidate>
       
       {/* ── Step 1 + 2 Row ─────────────────────────────────────────────── */}
       <div
@@ -489,8 +488,10 @@ export default function UploadForm({
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <Button
             id="btn-submit"
-            type="submit"
+            type="button"
+            delayAction
             disabled={loading}
+            onClick={handleSubmit}
             style={submitButtonStyle(loading)}
           >
             開始分析

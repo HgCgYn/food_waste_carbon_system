@@ -3,9 +3,13 @@ import { useState } from "react";
 /**
  * Button component with a ripple effect on click.
  * Wraps standard button props and styles.
+ * @param {boolean} delayAction — 若為 true，onClick 會等到水波紋動畫結束後才觸發
  */
-export default function Button({ children, style, onClick, ...props }) {
+export default function Button({ children, style, onClick, delayAction, ...props }) {
   const [ripples, setRipples] = useState([]);
+
+  /** 水波紋動畫時長（ms），與 CSS ripple-animation 的 duration 一致 */
+  const RIPPLE_DURATION = 600;
 
   const handleClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -22,9 +26,16 @@ export default function Button({ children, style, onClick, ...props }) {
 
     setTimeout(() => {
       setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-    }, 600); // match animation duration
+    }, RIPPLE_DURATION);
 
-    if (onClick) onClick(e);
+    if (onClick) {
+      if (delayAction) {
+        // NOTE: 等水波紋動畫完整播完後再觸發實際動作
+        setTimeout(() => onClick(e), RIPPLE_DURATION);
+      } else {
+        onClick(e);
+      }
+    }
   };
 
   return (
