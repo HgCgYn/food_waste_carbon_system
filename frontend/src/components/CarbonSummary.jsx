@@ -287,10 +287,10 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
 
       {/* Action buttons */}
       <div ref={bottomRef} style={{ display: "flex", justifyContent: "flex-end", gap: "32px", flexWrap: "wrap" }}>
-        <Button id="btn-analyse-other" type="button" onClick={() => setTimeout(onAnalyseOther, 250)} style={actionButtonStyle}>
+        <Button id="btn-analyse-other" type="button" delayAction onClick={onAnalyseOther} style={actionButtonStyle}>
           <IconSearch /> 分析其它廚餘
         </Button>
-        <Button id="btn-view-detail" type="button" onClick={() => { onViewDetail(); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} style={actionButtonStyle}>
+        <Button id="btn-view-detail" type="button" delayAction onClick={() => { onViewDetail(); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} style={actionButtonStyle}>
           查看詳細分析結果 <IconArrowRight />
         </Button>
       </div>

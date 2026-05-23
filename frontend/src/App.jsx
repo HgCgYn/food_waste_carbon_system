@@ -405,7 +405,8 @@ function DetailView({ result, onBack }) {
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           id="btn-back-to-summary"
-          onClick={() => setTimeout(onBack, 250)}
+          delayAction
+          onClick={onBack}
           style={{
             display: "inline-flex",
             alignItems: "center",
