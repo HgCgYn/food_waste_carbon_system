@@ -80,7 +80,7 @@ const actionButtonStyle = {
   animation: "aurora-flow 12s ease infinite",
   color: "#111",
   border: "none",
-  padding: "24px 32px",
+  padding: "16px 32px",
   fontWeight: 900,
   fontSize: "1.125rem",
   cursor: "pointer",

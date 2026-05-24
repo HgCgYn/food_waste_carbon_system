@@ -437,7 +437,7 @@ function DetailView({ result, onBack }) {
             color: "#111",
             border: "none",
             borderRadius: "999px",
-            padding: "24px 32px",
+            padding: "16px 32px",
             fontWeight: 900,
             fontSize: "1.125rem",
             cursor: "pointer",
