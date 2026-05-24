@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { detectWaste } from "../api/wasteApi";
-import { IconUpload, IconCamera, IconTrash, IconArrowRight } from "./Icons";
+import { IconUpload, IconCamera, IconTrash, IconArrowRight, IconRefresh } from "./Icons";
 import Button from "./Button";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -335,6 +335,41 @@ export default function UploadForm({
   const fileHasError = fileTouched && !file;
   const weightHasError = weightTouched && (!weight || Number(weight) <= 0);
 
+  // Compute properties for Step 2 Action Button
+  let step2BtnLabel = "從裝置選擇既有圖片";
+  let step2BtnIcon = <IconUpload />;
+  let step2BtnOnClick = () => {};
+  let step2BtnDisabled = false;
+  let step2BtnStyle = actionButtonStyle("primary");
+
+  if (inputMode === "upload") {
+    step2BtnLabel = file ? "重新選擇既有圖片" : "從裝置選擇既有圖片";
+    step2BtnIcon = <IconUpload />;
+    step2BtnOnClick = () => {
+      document.getElementById("hidden-file-input")?.click();
+    };
+  } else {
+    if (cameraPhase === "idle") {
+      step2BtnLabel = cameraStarting ? "啟動相機中..." : "開啟相機";
+      step2BtnIcon = <IconCamera />;
+      step2BtnOnClick = startCamera;
+    } else if (cameraPhase === "live") {
+      step2BtnLabel = "拍照並使用";
+      step2BtnIcon = <IconCamera />;
+      step2BtnOnClick = capturePhoto;
+      step2BtnDisabled = !cameraReady;
+      step2BtnStyle = {
+        ...step2BtnStyle,
+        opacity: cameraReady ? 1 : 0.5,
+        cursor: cameraReady ? "pointer" : "not-allowed",
+      };
+    } else if (cameraPhase === "captured") {
+      step2BtnLabel = "重新拍照";
+      step2BtnIcon = <IconCamera />;
+      step2BtnOnClick = startCamera;
+    }
+  }
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={{ display: "grid", gap: "64px" }} noValidate>
       
@@ -380,18 +415,22 @@ export default function UploadForm({
             </div>
             
             {/* Header Action Button */}
-            {inputMode === "upload" ? (
-              <UploadModeActionButton file={file} onChange={handleFileChange} />
-            ) : (
-              <CameraModeActionButtonFixed
-                phase={cameraPhase}
-                cameraStarting={cameraStarting}
-                cameraReady={cameraReady}
-                onStart={startCamera}
-                onCapture={capturePhoto}
-                onDiscard={discardCapture}
-              />
-            )}
+            <AnimatedActionButton
+              id="btn-step2-action"
+              type="button"
+              style={step2BtnStyle}
+              onClick={step2BtnOnClick}
+              disabled={step2BtnDisabled}
+              icon={step2BtnIcon}
+              label={step2BtnLabel}
+            />
+            <input
+              id="hidden-file-input"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
           </div>
 
           {/* Large Image Area */}
@@ -507,65 +546,95 @@ export default function UploadForm({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function UploadModeActionButton({ file, onChange }) {
-  const fileInputRef = useRef(null);
-  const label = file ? "重新選擇既有圖片" : "從裝置選擇既有圖片";
+function AnimatedActionButton({ id, type, style, onClick, disabled, icon, label }) {
+  const [displayedIcon, setDisplayedIcon] = useState(icon);
+  const [displayedLabel, setDisplayedLabel] = useState(label);
+  const [phase, setPhase] = useState("idle"); 
+  const prevLabelRef = useRef(label);
+  const timeouts = useRef([]);
+  
+  useEffect(() => {
+    if (label !== prevLabelRef.current) {
+      prevLabelRef.current = label;
+      
+      timeouts.current.forEach(clearTimeout);
+      timeouts.current = [];
+      
+      setPhase("shrinking");
+      
+      const t1 = setTimeout(() => {
+        setPhase("spinning");
+        
+        const t2 = setTimeout(() => {
+          setDisplayedIcon(icon);
+          setDisplayedLabel(label);
+          setPhase("expanding");
+          
+          const t3 = setTimeout(() => {
+            setPhase("idle");
+          }, 150);
+          timeouts.current.push(t3);
+        }, 250); 
+        timeouts.current.push(t2);
+      }, 150); 
+      timeouts.current.push(t1);
+    }
+  }, [label, icon]);
+
+  useEffect(() => {
+    return () => timeouts.current.forEach(clearTimeout);
+  }, []);
+
+  const isCollapsed = phase === "shrinking" || phase === "spinning";
 
   return (
-    <>
-      <Button
-        id="btn-choose-file"
-        type="button"
-        style={actionButtonStyle("primary")}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <IconUpload /> {label}
-      </Button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={onChange}
-        style={{ display: "none" }}
-      />
-    </>
-  );
-}
-
-function CameraModeActionButtonFixed({ phase, cameraStarting, cameraReady, onStart, onCapture, onDiscard }) {
-  if (phase === "idle") {
-    return (
-      <Button id="btn-open-camera" type="button" style={actionButtonStyle("primary")} onClick={onStart}>
-        <IconCamera /> {cameraStarting ? "啟動相機中..." : "開啟相機"}
-      </Button>
-    );
-  }
-
-  if (phase === "live") {
-    return (
-      <Button
-        id="btn-capture"
-        type="button"
+    <Button
+      id={id}
+      type={type}
+      style={{
+        ...style,
+        maxWidth: isCollapsed ? "48px" : "300px",
+        minWidth: isCollapsed ? "48px" : "0",
+        padding: isCollapsed ? "12px" : "12px 28px",
+        justifyContent: "center",
+        transition: "max-width 0.15s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.15s cubic-bezier(0.4, 0, 0.2, 1), padding 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+      }}
+      onClick={onClick}
+      disabled={disabled || phase !== "idle"}
+    >
+      <div 
         style={{
-          ...actionButtonStyle("primary"),
-          opacity: cameraReady ? 1 : 0.5,
-          cursor: cameraReady ? "pointer" : "not-allowed",
+          display: "flex", 
+          alignItems: "center",
+          justifyContent: "center",
+          gap: isCollapsed ? "0px" : "10px",
+          transform: phase === "spinning" ? "rotate(180deg)" : "rotate(0deg)",
+          transition: phase === "spinning" ? "transform 0.25s ease-in-out" : "none",
         }}
-        onClick={onCapture}
-        disabled={!cameraReady}
       >
-        <IconCamera /> 拍照並使用
-      </Button>
-    );
-  }
-
-  // NOTE: captured 階段只保留「重新拍照」，不顯示「捨棄」按鈕
-  return (
-    <Button id="btn-retake" type="button" style={actionButtonStyle("primary")} onClick={onStart}>
-      <IconCamera /> 重新拍照
+        <div style={{ display: "flex", flexShrink: 0, alignItems: "center", justifyContent: "center", minHeight: "24px" }}>
+          {phase === "shrinking" || phase === "spinning" ? (
+            <IconRefresh />
+          ) : (
+            displayedIcon
+          )}
+        </div>
+        <span style={{ 
+          opacity: isCollapsed ? 0 : 1, 
+          maxWidth: isCollapsed ? "0px" : "200px",
+          overflow: "hidden",
+          transition: "max-width 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s",
+        }}>
+          {displayedLabel}
+        </span>
+      </div>
     </Button>
   );
 }
+
+
 
 function waitForVideoReady(video) {
   if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && video.currentTime > 0) {
