@@ -47,6 +47,7 @@ const pillButtonStyle = (active) => ({
   transition: "background 0.2s",
   textAlign: "center",
   width: "100%",
+  maxWidth: "200px",
 });
 
 const imagePlaceholderStyle = (hasError) => ({
@@ -95,6 +96,7 @@ const actionButtonStyle = (variant = "primary") => {
 
 const inputStyle = (hasError) => ({
   width: "100%",
+  maxWidth: "200px",
   padding: "18px 24px",
   borderRadius: "999px",
   border: hasError ? `3px solid ${TEXT_ERROR}` : "none",
@@ -141,6 +143,7 @@ export default function UploadForm({
   const [weightTouched, setWeightTouched] = useState(false);
 
   const [inputMode, setInputMode] = useState("upload");
+  const [submitPhase, setSubmitPhase] = useState("idle");
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
@@ -318,18 +321,30 @@ export default function UploadForm({
       return;
     }
 
-    onLoadingChange(true);
-    onErrorChange("");
-    onSubmitResult(null);
+    if (submitPhase !== "idle") return;
 
-    try {
-      const result = await detectWaste(file, weight);
-      onSubmitResult(result);
-    } catch (err) {
-      onErrorChange(err.message || "分析失敗，請稍後再試。");
-    } finally {
-      onLoadingChange(false);
-    }
+    setSubmitPhase("step1");
+    
+    setTimeout(() => {
+      setSubmitPhase("step2");
+      
+      setTimeout(async () => {
+        onLoadingChange(true);
+        onErrorChange("");
+        onSubmitResult(null);
+
+        try {
+          const result = await detectWaste(file, weight);
+          onSubmitResult(result);
+        } catch (err) {
+          onErrorChange(err.message || "分析失敗，請稍後再試。");
+          setSubmitPhase("idle");
+        } finally {
+          onLoadingChange(false);
+          setTimeout(() => setSubmitPhase("idle"), 500);
+        }
+      }, 400);
+    }, 350);
   };
 
   const fileHasError = fileTouched && !file;
@@ -490,10 +505,10 @@ export default function UploadForm({
           display: "grid",
           gridTemplateColumns: "1fr 2.5fr",
           gap: "48px",
-          alignItems: "center",
+          alignItems: "end",
         }}
       >
-        <div>
+        <div style={{ position: "relative" }}>
           <p style={sectionTitleStyle}>Step3</p>
           <p style={sectionSubStyle}>輸入整盤廚餘重量（g）</p>
           <input
@@ -515,26 +530,68 @@ export default function UploadForm({
             aria-describedby={weightHasError ? "weight-error" : undefined}
           />
           {weightHasError && (
-            <p id="weight-error" style={{ color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>
+            <p id="weight-error" style={{ position: "absolute", color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>
               請輸入大於 0 的整盤廚餘重量。
             </p>
           )}
           {error && !weightHasError && !fileHasError && (
-            <p style={{ color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>{error}</p>
+            <p style={{ position: "absolute", color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>{error}</p>
           )}
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <Button
             id="btn-submit"
-            type="button"
-            delayAction
-            disabled={loading}
-            onClick={handleSubmit}
-            style={submitButtonStyle(loading)}
+            type="submit"
+            disabled={loading || submitPhase !== "idle"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              borderRadius: "999px",
+              height: "80px",
+              width: submitPhase === "step2" ? "80px" : "230px",
+              padding: "0",
+              background: (loading && submitPhase === "idle") ? GRAY_BG : AURORA_GRADIENT,
+              backgroundSize: (loading && submitPhase === "idle") ? "auto" : "300% 300%",
+              animation: (loading && submitPhase === "idle") ? "none" : "aurora-flow 12s ease infinite",
+              color: (loading && submitPhase === "idle") ? TEXT_MUTED : TEXT_DARK,
+              fontWeight: 900,
+              fontSize: "1.5rem",
+              cursor: (loading || submitPhase !== "idle") ? "not-allowed" : "pointer",
+              fontFamily: "inherit",
+              transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+              overflow: "hidden",
+            }}
           >
-            開始分析
-            <IconArrowRight />
+            <span
+              style={{
+                opacity: submitPhase === "idle" ? 1 : 0,
+                width: submitPhase === "idle" ? "96px" : "0px",
+                marginRight: submitPhase === "idle" ? "12px" : "0px",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                transition: "all 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
+                display: "inline-block",
+                textAlign: "center",
+              }}
+            >
+              開始分析
+            </span>
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transform: submitPhase === "idle" ? "scale(1) translateX(0)" :
+                           submitPhase === "step1" ? "scale(1.5) translateX(-40px)" :
+                           "scale(1.5) translateX(0)",
+                transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+              }}
+            >
+              <IconArrowRight />
+            </span>
           </Button>
         </div>
       </div>
