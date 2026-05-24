@@ -399,14 +399,34 @@ function HeroSection() {
  * @param {{ result: object, onBack: () => void }} props
  */
 function DetailView({ result, onBack }) {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleBackClick = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsAnimating(false);
+      onBack();
+    }, 600);
+  };
+
   return (
     <div style={{ display: "grid", gap: "28px" }}>
+      <style>{`
+        @keyframes popDownContent {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(24px);
+          }
+        }
+      `}</style>
       {/* Back button */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           id="btn-back-to-summary"
-          delayAction
-          onClick={onBack}
+          onClick={handleBackClick}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -417,7 +437,7 @@ function DetailView({ result, onBack }) {
             color: "#111",
             border: "none",
             borderRadius: "999px",
-            padding: "16px 32px",
+            padding: "24px 32px",
             fontWeight: 900,
             fontSize: "1.125rem",
             cursor: "pointer",
@@ -429,20 +449,28 @@ function DetailView({ result, onBack }) {
         </Button>
       </div>
 
-      {/* Detection images */}
       <div
         style={{
+          animation: isAnimating ? "popDownContent 0.6s cubic-bezier(0.25, 1, 0.5, 1)" : "none",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "20px",
+          gap: "28px"
         }}
       >
-        <ImagePreview title="偵測結果" imageBase64={result?.image_base64} />
-        <ImagePreview title="分群視圖" imageBase64={result?.clustering_image_base64} />
-      </div>
+        {/* Detection images */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "20px",
+          }}
+        >
+          <ImagePreview title="偵測結果" imageBase64={result?.image_base64} />
+          <ImagePreview title="分群視圖" imageBase64={result?.clustering_image_base64} />
+        </div>
 
-      {/* Recognition table */}
-      <ResultTable items={result?.objects ?? []} />
+        {/* Recognition table */}
+        <ResultTable items={result?.objects ?? []} />
+      </div>
     </div>
   );
 }

@@ -80,8 +80,7 @@ const actionButtonStyle = {
   animation: "aurora-flow 12s ease infinite",
   color: "#111",
   border: "none",
-  borderRadius: "999px",
-  padding: "16px 32px",
+  padding: "24px 32px",
   fontWeight: 900,
   fontSize: "1.125rem",
   cursor: "pointer",
@@ -125,7 +124,25 @@ const CountUpNumber = ({ value, decimals = 0, suffix = "" }) => {
  */
 export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) {
   const bottomRef = useRef(null);
+  const [isAnimating, setIsAnimating] = useState(false);
   const totalKg = Number(result?.total_carbon_emission_kg) || 0;
+
+  const handleActionClick = (actionFn) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsAnimating(false);
+      actionFn();
+    }, 600);
+  };
+
+  const leftBtnAnimation = isAnimating 
+    ? "aurora-flow 12s ease infinite, popLeftButton 0.6s cubic-bezier(0.25, 1, 0.5, 1)"
+    : "aurora-flow 12s ease infinite";
+    
+  const rightBtnAnimation = isAnimating
+    ? "aurora-flow 12s ease infinite, popRightButton 0.6s cubic-bezier(0.25, 1, 0.5, 1)"
+    : "aurora-flow 12s ease infinite";
 
   // 換算三個等效指標
   const carDistanceKm = totalKg * (1 / KG_CO2_PER_KM_CAR);
@@ -147,6 +164,26 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
 
   return (
     <div style={{ display: "grid", gap: "32px" }}>
+      <style>{`
+        @keyframes popLeftButton {
+          0%, 100% {
+            transform: translateX(0);
+            border-radius: 40px 20px 20px 40px;
+          }
+          50% {
+            transform: translateX(-14px);
+            border-radius: 40px;
+          }
+        }
+        @keyframes popRightButton {
+          0%, 100% {
+            border-radius: 20px 40px 40px 20px;
+          }
+          50% {
+            border-radius: 40px;
+          }
+        }
+      `}</style>
       {/* Title */}
       <h1 style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 900, color: TEXT_DARK }}>
         <span style={{
@@ -286,11 +323,21 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
       </div>
 
       {/* Action buttons */}
-      <div ref={bottomRef} style={{ display: "flex", justifyContent: "flex-end", gap: "32px", flexWrap: "wrap" }}>
-        <Button id="btn-analyse-other" type="button" delayAction onClick={onAnalyseOther} style={actionButtonStyle}>
+      <div ref={bottomRef} style={{ display: "flex", justifyContent: "flex-end", gap: "6px", flexWrap: "wrap", marginTop: "44px" }}>
+        <Button 
+          id="btn-analyse-other" 
+          type="button" 
+          onClick={() => handleActionClick(onAnalyseOther)} 
+          style={{ ...actionButtonStyle, borderRadius: "40px 20px 20px 40px", animation: leftBtnAnimation }}
+        >
           <IconSearch /> 分析其它廚餘
         </Button>
-        <Button id="btn-view-detail" type="button" delayAction onClick={() => { onViewDetail(); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} style={actionButtonStyle}>
+        <Button 
+          id="btn-view-detail" 
+          type="button" 
+          onClick={() => handleActionClick(() => { onViewDetail(); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); })} 
+          style={{ ...actionButtonStyle, borderRadius: "20px 40px 40px 20px", animation: rightBtnAnimation }}
+        >
           查看詳細分析結果 <IconArrowRight />
         </Button>
       </div>
