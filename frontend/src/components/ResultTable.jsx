@@ -172,7 +172,7 @@ function SortableTh({ colKey, label, sortKey, sortDir, onSort }) {
           display: "inline-flex",
           alignItems: "center",
           padding: "8px 12px",
-          borderRadius: "999px", // 膠囊狀（完全圓角）
+          borderRadius: "24px",
           cursor: "pointer",
           userSelect: "none",
           position: "relative",
@@ -180,6 +180,7 @@ function SortableTh({ colKey, label, sortKey, sortDir, onSort }) {
           // NOTE: 有 active sort 或 hover 時稍微加深背景做視覺回饋
           background: isActive || hovered ? "rgba(0,0,0,0.06)" : "transparent",
           transition: "background 0.15s ease",
+          animation: isAnimating ? "morphShape 0.6s ease-in-out" : "none",
         }}
         onClick={handleClick}
         onMouseEnter={() => setHovered(true)}
@@ -240,6 +241,13 @@ export default function ResultTable({ items }) {
 
   return (
     <div style={wrapperStyle}>
+      <style>{`
+        @keyframes morphShape {
+          0% { border-radius: 24px; transform: scale(1); }
+          50% { border-radius: 8px; transform: scale(0.95); }
+          100% { border-radius: 24px; transform: scale(1); }
+        }
+      `}</style>
       <h2 style={{ marginBottom: "24px", fontSize: "1.5rem", fontWeight: 900, color: "#111827" }}>
         辨識結果
       </h2>
