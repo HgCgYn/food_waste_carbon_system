@@ -151,6 +151,7 @@ export default function UploadForm({
   const [cameraError, setCameraError] = useState("");
   const [cameraStream, setCameraStream] = useState(null);
   const [cameraPhase, setCameraPhase] = useState("idle");
+  const [showFlash, setShowFlash] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -259,6 +260,13 @@ export default function UploadForm({
       setCameraError("相機畫面尚未準備完成，請稍候再拍照。");
       return;
     }
+
+    // 觸發拍照閃光動畫
+    setShowFlash(true);
+    setTimeout(() => {
+      setShowFlash(false);
+    }, 50);
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth || 1280;
@@ -488,6 +496,19 @@ export default function UploadForm({
                 )}
               </>
             )}
+
+            {/* 拍照動畫 Flash */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundColor: "white",
+                zIndex: 50,
+                opacity: showFlash ? 1 : 0,
+                pointerEvents: "none",
+                transition: showFlash ? "none" : "opacity 0.6s ease-out",
+              }}
+            />
           </div>
 
           {cameraError && (
