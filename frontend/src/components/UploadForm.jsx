@@ -134,6 +134,8 @@ export default function UploadForm({
   onLoadingChange,
   onErrorChange,
   error,
+  imageError = false,
+  onImageErrorChange = () => {},
 }) {
   const [file, setFile] = useState(null);
   const [fileTouched, setFileTouched] = useState(false);
@@ -199,6 +201,10 @@ export default function UploadForm({
     setFile(chosen);
     setFileTouched(true);
     setCameraError("");
+    if (chosen) {
+      onImageErrorChange(false);
+      onErrorChange("");
+    }
     event.target.value = "";
 
     // NOTE: 選圖成功後，絲滑捲動到 Step 3 引導使用者繼續填寫重量
@@ -290,6 +296,8 @@ export default function UploadForm({
     setFileTouched(true);
     stopCamera();
     setCameraPhase("captured");
+    onImageErrorChange(false);
+    onErrorChange("");
   };
 
   const discardCapture = () => {
@@ -356,6 +364,7 @@ export default function UploadForm({
   };
 
   const fileHasError = fileTouched && !file;
+  const showImageError = fileHasError || imageError;
   const weightHasError = weightTouched && (!weight || Number(weight) <= 0);
 
   // Compute properties for Step 2 Action Button
@@ -457,7 +466,7 @@ export default function UploadForm({
           </div>
 
           {/* Large Image Area */}
-          <div style={imagePlaceholderStyle(fileHasError)}>
+          <div style={imagePlaceholderStyle(showImageError)}>
             {inputMode === "upload" && (
               <>
                 {previewUrl ? (
@@ -514,8 +523,10 @@ export default function UploadForm({
           {cameraError && (
             <p style={{ color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>{cameraError}</p>
           )}
-          {fileHasError && (
-            <p style={{ color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>請先選擇或拍攝圖片。</p>
+          {showImageError && (
+            <p style={{ color: TEXT_ERROR, fontSize: "1rem", marginTop: "12px", fontWeight: 700 }}>
+              {imageError ? "模型未偵測到可辨識物件，請重新輸入圖片。" : "請先選擇或拍攝圖片。"}
+            </p>
           )}
         </div>
       </div>

@@ -5,12 +5,13 @@ import { useMemo, useState } from "react";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const wrapperStyle = {
-  background: "#f3f4f6",
+const wrapperStyle = (isAlert) => ({
+  background: isAlert ? "#fff5f5" : "#f3f4f6",
+  border: isAlert ? "2px solid #ef4444" : "2px solid transparent",
   borderRadius: "24px",
   padding: "32px 40px",
   overflowX: "auto",
-};
+});
 
 const tableStyle = {
   width: "100%",
@@ -212,7 +213,7 @@ function SortableTh({ colKey, label, sortKey, sortDir, onSort }) {
  * ResultTable — recognition result table shown in View C.
  * Default sort: confidence descending.
  */
-export default function ResultTable({ items }) {
+export default function ResultTable({ items, isAlert = false }) {
   const [sortKey, setSortKey] = useState("confidence");
   const [sortDir, setSortDir] = useState("desc");
 
@@ -240,7 +241,7 @@ export default function ResultTable({ items }) {
   const sortProps = { sortKey, sortDir, onSort: handleSort };
 
   return (
-    <div style={wrapperStyle}>
+    <div style={wrapperStyle(isAlert)}>
       <style>{`
         @keyframes morphShape {
           0% { border-radius: 24px; transform: scale(1); }
@@ -248,7 +249,7 @@ export default function ResultTable({ items }) {
           100% { border-radius: 24px; transform: scale(1); }
         }
       `}</style>
-      <h2 style={{ marginBottom: "24px", fontSize: "1.5rem", fontWeight: 900, color: "#111827" }}>
+      <h2 style={{ marginBottom: "24px", fontSize: "1.5rem", fontWeight: 900, color: isAlert ? "#991b1b" : "#111827" }}>
         辨識結果
       </h2>
       <table style={tableStyle}>
@@ -270,8 +271,8 @@ export default function ResultTable({ items }) {
         <tbody>
           {sortedItems.length === 0 ? (
             <tr>
-              <td style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }} colSpan={9}>
-                尚無分析結果。
+              <td style={{ ...tdStyle, color: isAlert ? "#b91c1c" : "#9ca3af", textAlign: "center" }} colSpan={9}>
+                {isAlert ? "模型未偵測到可辨識物件，請重新輸入圖片。" : "尚無分析結果。"}
               </td>
             </tr>
           ) : (

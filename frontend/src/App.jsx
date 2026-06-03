@@ -175,6 +175,7 @@ export default function App() {
   // 'summary' | 'detail' — controls the CSS slide class
   const [slideState, setSlideState] = useState("summary");
   const [result, setResult] = useState(null);
+  const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -182,9 +183,30 @@ export default function App() {
   // when detail panel is positioned absolutely on top.
   const summaryRef = useRef(null);
   const detailRef = useRef(null);
+  const hasNoDetection = Boolean(result && Array.isArray(result.objects) && result.objects.length === 0);
 
   /** Called by UploadForm after a successful API response. */
   const handleSubmitResult = (data) => {
+    if (!data) {
+      setResult(null);
+      return;
+    }
+    // If backend returned an empty objects array, treat as "no detection" and stay on form
+    const noDetection = Boolean(data && Array.isArray(data.objects) && data.objects.length === 0);
+    if (noDetection) {
+      setResult(null);
+      setImageError(true);
+      setError("模型未偵測到可辨識物件，請重新上傳圖片。");
+      setView("form");
+      // Scroll to form image area
+      setTimeout(() => {
+        const formSection = document.getElementById("upload-form-section");
+        if (formSection) formSection.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+
+    setImageError(false);
     setResult(data);
     setSlideState("summary");
     setView("result");
@@ -257,6 +279,8 @@ export default function App() {
                 onLoadingChange={setLoading}
                 onErrorChange={setError}
                 error={error}
+                imageError={imageError}
+                onImageErrorChange={setImageError}
               />
             </div>
           </section>
@@ -273,6 +297,7 @@ export default function App() {
               <div className="result-panel result-panel--summary" ref={summaryRef}>
                 <CarbonSummary
                   result={result}
+                  hasNoDetection={hasNoDetection}
                   onAnalyseOther={resetToHome}
                   onViewDetail={goToDetail}
                 />
@@ -280,7 +305,12 @@ export default function App() {
 
               {/* Panel C — Detail */}
               <div className="result-panel result-panel--detail" ref={detailRef}>
-                <DetailView result={result} onBack={goToSummary} />
+                <DetailView
+                  result={result}
+                  hasNoDetection={hasNoDetection}
+                  onBack={goToSummary}
+                  onRetryUpload={resetToHome}
+                />
               </div>
             </div>
           </div>
@@ -396,9 +426,9 @@ function HeroSection() {
 
 /**
  * Panel C — shows detection images and the recognition result table.
- * @param {{ result: object, onBack: () => void }} props
+ * @param {{ result: object, hasNoDetection: boolean, onBack: () => void, onRetryUpload: () => void }} props
  */
-function DetailView({ result, onBack }) {
+function DetailView({ result, hasNoDetection, onBack, onRetryUpload }) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleBackClick = () => {
@@ -426,15 +456,15 @@ function DetailView({ result, onBack }) {
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           id="btn-back-to-summary"
-          onClick={handleBackClick}
+          onClick={hasNoDetection ? onRetryUpload : handleBackClick}
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "10px",
-            background: "linear-gradient(120deg, #b3d85a, #84cc16, #4ade80, #a3e635, #b3d85a)",
-            backgroundSize: "300% 300%",
-            animation: "aurora-flow 12s ease infinite",
-            color: "#111",
+            background: hasNoDetection ? "#fee2e2" : "linear-gradient(120deg, #b3d85a, #84cc16, #4ade80, #a3e635, #b3d85a)",
+            backgroundSize: hasNoDetection ? "auto" : "300% 300%",
+            animation: hasNoDetection ? "none" : "aurora-flow 12s ease infinite",
+            color: hasNoDetection ? "#991b1b" : "#111",
             border: "none",
             borderRadius: "999px",
             padding: "16px 32px",
@@ -445,9 +475,29 @@ function DetailView({ result, onBack }) {
           }}
         >
           <IconArrowLeft />
-          返回前頁
+          {hasNoDetection ? "重新輸入圖片" : "返回前頁"}
         </Button>
       </div>
+
+      {hasNoDetection && (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "2px solid #ef4444",
+            color: "#991b1b",
+            borderRadius: "24px",
+            padding: "24px 28px",
+            display: "grid",
+            gap: "8px",
+            boxShadow: "0 16px 40px rgba(239, 68, 68, 0.12)",
+          }}
+        >
+          <strong style={{ fontSize: "1.25rem" }}>模型未偵測到可辨識物件</strong>
+          <p style={{ lineHeight: 1.7, fontWeight: 700 }}>
+            目前這張圖片沒有成功辨識到可分析的餐盤內容，請重新輸入圖片後再試一次。
+          </p>
+        </div>
+      )}
 
       <div
         style={{
@@ -464,12 +514,12 @@ function DetailView({ result, onBack }) {
             gap: "20px",
           }}
         >
-          <ImagePreview title="偵測結果" imageBase64={result?.image_base64} />
-          <ImagePreview title="分群視圖" imageBase64={result?.clustering_image_base64} />
+          <ImagePreview title="偵測結果" imageBase64={result?.image_base64} isAlert={hasNoDetection} />
+          <ImagePreview title="分群視圖" imageBase64={result?.clustering_image_base64} isAlert={hasNoDetection} />
         </div>
 
         {/* Recognition table */}
-        <ResultTable items={result?.objects ?? []} />
+        <ResultTable items={result?.objects ?? []} isAlert={hasNoDetection} />
       </div>
     </div>
   );

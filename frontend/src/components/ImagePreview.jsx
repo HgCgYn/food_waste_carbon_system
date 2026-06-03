@@ -1,20 +1,21 @@
 // Image preview card for View C — exact match for design 6.png.
 
-const cardStyle = {
-  background: "#f3f4f6", // Very light gray
+const cardStyle = (isAlert) => ({
+  background: isAlert ? "#fff5f5" : "#f3f4f6", // Very light gray
+  border: isAlert ? "2px solid #ef4444" : "2px solid transparent",
   borderRadius: "24px",
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
-};
+});
 
-const titleStyle = {
+const titleStyle = (isAlert) => ({
   padding: "24px 32px 16px",
   fontSize: "1.5rem",
   fontWeight: 900,
-  color: "#111827",
+  color: isAlert ? "#991b1b" : "#111827",
   margin: 0,
-};
+});
 
 const placeholderStyle = {
   width: "100%",
@@ -30,10 +31,10 @@ const placeholderStyle = {
 /**
  * ImagePreview — displays a labelled image card.
  */
-export default function ImagePreview({ title, imageBase64 }) {
+export default function ImagePreview({ title, imageBase64, isAlert = false }) {
   return (
-    <div style={cardStyle}>
-      <p style={titleStyle}>{title}</p>
+    <div style={cardStyle(isAlert)}>
+      <p style={titleStyle(isAlert)}>{title}</p>
       {imageBase64 ? (
         <img
           src={`data:image/jpeg;base64,${imageBase64}`}

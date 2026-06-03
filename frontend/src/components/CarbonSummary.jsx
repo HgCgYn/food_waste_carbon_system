@@ -25,14 +25,15 @@ const auroraTextStyle = {
 
 const iconSvgStr = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 18v-2'/%3E%3Cpath d='M12 18v-4'/%3E%3Cpath d='M16 18v-6'/%3E%3C/svg%3E";
 
-const cardStyle = {
-  background: GRAY_BG,
+const cardStyle = (isAlert) => ({
+  background: isAlert ? "#fff5f5" : GRAY_BG,
+  border: isAlert ? "2px solid #ef4444" : "2px solid transparent",
   borderRadius: "32px",
   padding: "48px 56px",
   display: "flex",
   flexDirection: "column",
   gap: "32px",
-};
+});
 
 const metricLabelStyle = {
   fontSize: "1.25rem",
@@ -122,7 +123,7 @@ const CountUpNumber = ({ value, decimals = 0, suffix = "" }) => {
 /**
  * CarbonSummary — View B result overview card.
  */
-export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) {
+export default function CarbonSummary({ result, hasNoDetection, onAnalyseOther, onViewDetail }) {
   const bottomRef = useRef(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const totalKg = Number(result?.total_carbon_emission_kg) || 0;
@@ -203,8 +204,27 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
         分析結果報告
       </h1>
 
+      {hasNoDetection && (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "2px solid #ef4444",
+            color: "#991b1b",
+            borderRadius: "24px",
+            padding: "20px 24px",
+            display: "grid",
+            gap: "6px",
+          }}
+        >
+          <strong style={{ fontSize: "1.2rem" }}>模型未偵測到可辨識物件</strong>
+          <p style={{ lineHeight: 1.7, fontWeight: 700 }}>
+            這張圖片沒有成功產生可分析結果，請重新輸入圖片後再試一次。
+          </p>
+        </div>
+      )}
+
       {/* Metric card */}
-      <div style={cardStyle}>
+      <div style={cardStyle(hasNoDetection)}>
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "48px" }}>
           {/* Left column — primary metrics */}
           <div style={{ display: "grid", gap: "32px" }}>
@@ -330,16 +350,18 @@ export default function CarbonSummary({ result, onAnalyseOther, onViewDetail }) 
           onClick={() => handleActionClick(onAnalyseOther)} 
           style={{ ...actionButtonStyle, borderRadius: "40px 20px 20px 40px", animation: leftBtnAnimation }}
         >
-          <IconSearch /> 分析其它廚餘
+          <IconSearch /> {hasNoDetection ? "重新輸入圖片" : "分析其它廚餘"}
         </Button>
-        <Button 
-          id="btn-view-detail" 
-          type="button" 
-          onClick={() => handleActionClick(() => { onViewDetail(); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); })} 
-          style={{ ...actionButtonStyle, borderRadius: "20px 40px 40px 20px", animation: rightBtnAnimation }}
-        >
-          查看詳細分析結果 <IconArrowRight />
-        </Button>
+        {!hasNoDetection && (
+          <Button 
+            id="btn-view-detail" 
+            type="button" 
+            onClick={() => handleActionClick(() => { onViewDetail(); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); })} 
+            style={{ ...actionButtonStyle, borderRadius: "20px 40px 40px 20px", animation: rightBtnAnimation }}
+          >
+            查看詳細分析結果 <IconArrowRight />
+          </Button>
+        )}
       </div>
     </div>
   );
