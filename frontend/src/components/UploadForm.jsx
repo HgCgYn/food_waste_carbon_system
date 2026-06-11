@@ -97,7 +97,8 @@ const actionButtonStyle = (variant = "primary") => {
 const inputStyle = (hasError) => ({
   width: "100%",
   maxWidth: "200px",
-  padding: "18px 24px",
+  height: "60px",
+  padding: "0 24px",
   borderRadius: "999px",
   border: hasError ? `3px solid ${TEXT_ERROR}` : "none",
   fontSize: "1.125rem",
@@ -126,6 +127,38 @@ const submitButtonStyle = (disabled) => ({
   transition: "background 0.2s",
 });
 
+// NOTE: 可辨識的分析模型清單，順序即為按鈕由左至右的排列順序
+const MODEL_OPTIONS = [
+  { id: "yolo",        label: "YOLO",  sublabel: "(最快)"   },
+  { id: "yolo_gemini", label: "YOLO",  sublabel: "+ Gemini" },
+  { id: "yolo_gpt",   label: "YOLO",  sublabel: "+ GPT"    },
+];
+
+/**
+ * 回傳模型選擇按鈕的樣式物件。
+ * 已選中(active)：完全圓角 pill + Aurora 漸層；未選中：輕微圓角矩形 + 灰底。
+ * flex 比例讓 active 按鈕自動佔據較大寬度，三按鈕總和維持 100%。
+ */
+const modelButtonStyle = (isActive) => ({
+  border: "none",
+  borderRadius: isActive ? "60px" : "14px",
+  background: isActive ? AURORA_GRADIENT : GRAY_BG,
+  backgroundSize: isActive ? "300% 300%" : "auto",
+  animation: isActive ? "aurora-flow 12s ease infinite" : "none",
+  color: TEXT_DARK,
+  fontWeight: 900,
+  fontSize: "1.125rem",
+  cursor: "pointer",
+  fontFamily: "inherit",
+  height: "60px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "6px",
+  flex: isActive ? 2 : 1,
+  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+});
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function UploadForm({
@@ -146,6 +179,8 @@ export default function UploadForm({
 
   const [inputMode, setInputMode] = useState("upload");
   const [submitPhase, setSubmitPhase] = useState("idle");
+  // NOTE: 控制使用者選擇的分析模型，預設為純 YOLO（最快）
+  const [selectedModel, setSelectedModel] = useState("yolo");
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
@@ -350,7 +385,7 @@ export default function UploadForm({
         onSubmitResult(null);
 
         try {
-          const result = await detectWaste(file, weight);
+          const result = await detectWaste(file, weight, selectedModel);
           onSubmitResult(result);
         } catch (err) {
           onErrorChange(err.message || "分析失敗，請稍後再試。");
@@ -531,15 +566,16 @@ export default function UploadForm({
         </div>
       </div>
 
-      {/* ── Step 3 Row ─────────────────────────────────────────────────── */}
+      {/* ── Step 3 + 4 Row ─────────────────────────────────────────────── */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 2.5fr",
           gap: "48px",
-          alignItems: "end",
+          alignItems: "start",
         }}
       >
+        {/* Step 3 — Weight Input（左欄，與 Step 1 同寬）*/}
         <div style={{ position: "relative" }}>
           <p style={sectionTitleStyle}>Step3</p>
           <p style={sectionSubStyle}>輸入整盤廚餘重量（g）</p>
@@ -571,60 +607,87 @@ export default function UploadForm({
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            id="btn-submit"
-            type="submit"
-            disabled={loading || submitPhase !== "idle"}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none",
-              borderRadius: "999px",
-              height: "80px",
-              width: submitPhase === "step2" ? "80px" : "230px",
-              padding: "0",
-              background: (loading && submitPhase === "idle") ? GRAY_BG : AURORA_GRADIENT,
-              backgroundSize: (loading && submitPhase === "idle") ? "auto" : "300% 300%",
-              animation: (loading && submitPhase === "idle") ? "none" : "aurora-flow 12s ease infinite",
-              color: (loading && submitPhase === "idle") ? TEXT_MUTED : TEXT_DARK,
-              fontWeight: 900,
-              fontSize: "1.5rem",
-              cursor: (loading || submitPhase !== "idle") ? "not-allowed" : "pointer",
-              fontFamily: "inherit",
-              transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
-              overflow: "hidden",
-            }}
-          >
-            <span
+        {/* Step 4 — Model Selector（右欄，與 Step 2 圖片框同寬）*/}
+        <div>
+          <p style={sectionTitleStyle}>Step4</p>
+          <p style={sectionSubStyle}>選擇分析模型</p>
+
+          {/* NOTE: width: "100%" 讓三按鈕總寬度與上方 Step 2 圖片框自然對齊，
+               active 按鈕透過 flex: 2 自動加寬，inactive 為 flex: 1 */}
+          <div style={{ display: "flex", gap: "12px", width: "100%" }}>
+            {MODEL_OPTIONS.map((option) => {
+              const isActive = selectedModel === option.id;
+              return (
+                <Button
+                  key={option.id}
+                  id={`btn-model-${option.id}`}
+                  type="button"
+                  onClick={() => setSelectedModel(option.id)}
+                  style={modelButtonStyle(isActive)}
+                >
+                  <span>{option.label}</span>
+                  <span style={{ fontSize: "1rem", fontWeight: 700 }}>{option.sublabel}</span>
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* 開始分析按鈕 — 置於模型選擇器右下方 */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "64px" }}>
+            <Button
+              id="btn-submit"
+              type="submit"
+              disabled={loading || submitPhase !== "idle"}
               style={{
-                opacity: submitPhase === "idle" ? 1 : 0,
-                width: submitPhase === "idle" ? "96px" : "0px",
-                marginRight: submitPhase === "idle" ? "12px" : "0px",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                transition: "all 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
-                display: "inline-block",
-                textAlign: "center",
-              }}
-            >
-              開始分析
-            </span>
-            <span
-              style={{
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transform: submitPhase === "idle" ? "scale(1) translateX(0)" :
-                           submitPhase === "step1" ? "scale(1.5) translateX(-40px)" :
-                           "scale(1.5) translateX(0)",
+                border: "none",
+                borderRadius: "999px",
+                height: "80px",
+                width: submitPhase === "step2" ? "80px" : "230px",
+                padding: "0",
+                background: (loading && submitPhase === "idle") ? GRAY_BG : AURORA_GRADIENT,
+                backgroundSize: (loading && submitPhase === "idle") ? "auto" : "300% 300%",
+                animation: (loading && submitPhase === "idle") ? "none" : "aurora-flow 12s ease infinite",
+                color: (loading && submitPhase === "idle") ? TEXT_MUTED : TEXT_DARK,
+                fontWeight: 900,
+                fontSize: "1.5rem",
+                cursor: (loading || submitPhase !== "idle") ? "not-allowed" : "pointer",
+                fontFamily: "inherit",
                 transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                overflow: "hidden",
               }}
             >
-              <IconArrowRight />
-            </span>
-          </Button>
+              <span
+                style={{
+                  opacity: submitPhase === "idle" ? 1 : 0,
+                  width: submitPhase === "idle" ? "96px" : "0px",
+                  marginRight: submitPhase === "idle" ? "12px" : "0px",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
+                  display: "inline-block",
+                  textAlign: "center",
+                }}
+              >
+                開始分析
+              </span>
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transform: submitPhase === "idle" ? "scale(1) translateX(0)" :
+                             submitPhase === "step1" ? "scale(1.5) translateX(-40px)" :
+                             "scale(1.5) translateX(0)",
+                  transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                }}
+              >
+                <IconArrowRight />
+              </span>
+            </Button>
+          </div>
         </div>
       </div>
 

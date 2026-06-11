@@ -31,6 +31,9 @@ def estimate_items_and_total(detected_objects, total_weight_g, factor_resolver: 
                 "has_carbon_data": factor["has_carbon_data"],
                 "factor_source": factor["source"],
                 "weighted_area": weighted_area,
+                # NOTE: VLM 修正資訊，給前端顯示「前 → 後」的變更明細
+                "vlm_corrected": obj.get("vlm_corrected", False),
+                "original_yolo_label": obj.get("original_yolo_label", None),
             }
         )
 
