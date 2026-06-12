@@ -2,15 +2,16 @@
 
 # food-waste-carbon-system
 
-`food-waste-carbon-system` 是一個廚餘碳排放估算系統。它結合 React 前端、FastAPI 後端、YOLOv11 segmentation 與 PostgreSQL，讓使用者可以上傳餐盤廚餘圖片，輸入整盤重量，並取得每項食物的推估重量與碳排放量。
+`food-waste-carbon-system` 是一個廚餘碳排放估算系統。它結合 React 前端、FastAPI 後端、YOLOv11 segmentation、雲端 VLM（Gemini / GPT-4o）二次確認，以及 PostgreSQL，讓使用者可以上傳餐盤廚餘圖片，輸入整盤重量，並取得每項食物的推估重量與碳排放量。
 
 ## 系統目標
 
-- 使用 YOLOv11 segmentation 辨識餐盤中的食物廚餘
+- 使用 YOLOv11 segmentation 辨識餐盤中的食物廚餘（邊緣端推論）
+- 對低信心物件，透過 Google Gemini 或 OpenAI GPT-4o 進行二次視覺確認（雲端 VLM）
 - 根據物件面積與 `density_factor` 推估各食物重量
 - 根據 `carbon_factor` 計算各項食物碳排放量
 - 儲存分析紀錄到 PostgreSQL
-- 在 React 前端顯示辨識結果、重量與總碳排
+- 在 React 前端顯示辨識結果、重量、總碳排，以及 VLM 的修正明細
 
 ## 使用說明
 
@@ -41,13 +42,13 @@ food-waste-carbon-system/
 ```text
 使用者
 ↓
-React 上傳圖片 + total_weight_g
+React 上傳圖片 + total_weight_g + model
 ↓
 FastAPI /detect
 ↓
 PIL 讀取圖片
 ↓
-YOLOv11 segmentation
+YOLOv11 segmentation（邊緣端，conf=0.10）
 ↓
 取得 detected_objects
     ├── label_name
@@ -55,7 +56,12 @@ YOLOv11 segmentation
     ├── mask area
     └── box
 ↓
-過濾非食物類別
+[若 model=yolo_gemini 或 yolo_gpt]
+低信心物件（confidence < 0.50）→ 裁切圖片 → VLM 二次確認
+    ├── VLM 回傳已知食物標籤 → 更新 label_name，記錄 vlm_corrected=True
+    └── VLM 回傳 UNKNOWN 或 API 失敗 → 標記 vlm_ignored=True（丟棄物件）
+↓
+過濾非食物類別 / vlm_ignored 物件
 ↓
 查詢 food_carbon_factors
 ↓
@@ -67,9 +73,9 @@ estimated_weight_g / 1000 × carbon_factor
 ↓
 加總 total_carbon_emission_kg
 ↓
-回傳 JSON
+回傳 JSON（含 vlm_corrected / original_yolo_label）
 ↓
-React 顯示結果
+React 顯示結果（含 VLM 修正欄位）
 ```
 
 ## 偵測與碳排計算邏輯
@@ -99,9 +105,12 @@ carbon_emission_kg = estimated_weight_g / 1000 × carbon_factor
 
 使用 `multipart/form-data` 傳送：
 
-- `file`: 圖片檔案
-- `total_weight_g`: 整盤廚餘重量
-- `user_id`: 選填
+| 欄位 | 類型 | 必填 | 說明 |
+|------|------|------|------|
+| `file` | File | ✅ | 廚餘圖片檔案 |
+| `total_weight_g` | float | ✅ | 整盤廚餘重量（公克） |
+| `model` | string | 選填 | 辨識模式：`yolo`（預設）、`yolo_gemini`、`yolo_gpt` |
+| `user_id` | int | 選填 | 使用者 ID |
 
 主要回傳欄位：
 
@@ -109,22 +118,23 @@ carbon_emission_kg = estimated_weight_g / 1000 × carbon_factor
 - `image_base64`
 - `clustering_image_base64`
 - `waste_percentage`
-- `food_area`
-- `garbage_area`
-- `plate_area`
+- `food_area` / `garbage_area` / `plate_area`
 - `total_weight_g`
 - `total_carbon_emission_kg`
-- `matched_item_count`
-- `unmatched_item_count`
+- `matched_item_count` / `unmatched_item_count`
 
-每個 `object` 目前還會包含：
+每個 `object` 包含：
 
-- `label_name`
-- `estimated_weight_g`
-- `carbon_factor`
-- `carbon_emission_kg`
-- `has_carbon_data`
-- `factor_source`
+| 欄位 | 說明 |
+|------|------|
+| `label_name` | 最終食物標籤（VLM 修正後的結果） |
+| `estimated_weight_g` | 推估重量 |
+| `carbon_factor` | 碳排係數 |
+| `carbon_emission_kg` | 碳排量 |
+| `has_carbon_data` | 是否有對應碳排資料 |
+| `factor_source` | 碳排係數來源 |
+| `vlm_corrected` | `true` 代表此物件的標籤有被 VLM 修正過 |
+| `original_yolo_label` | VLM 修正前 YOLO 的原始標籤（僅在 `vlm_corrected=true` 時出現）|
 
 如果 `has_carbon_data = false`，代表該食物有被辨識到，但目前沒有對應碳排資料，因此不會被計入 `total_carbon_emission_kg`。
 
@@ -153,6 +163,25 @@ carbon_emission_kg = estimated_weight_g / 1000 × carbon_factor
 - `carbon_factor`
 - `density_factor`
 - `source`
+
+## 環境變數設定
+
+複製 `.env.example` 並重新命名為 `.env`，填入必要的設定：
+
+```bash
+cp .env.example .env
+```
+
+| 變數 | 必填 | 說明 |
+|------|------|------|
+| `POSTGRES_DB` | ✅ | PostgreSQL 資料庫名稱 |
+| `POSTGRES_USER` | ✅ | PostgreSQL 使用者 |
+| `POSTGRES_PASSWORD` | ✅ | PostgreSQL 密碼 |
+| `DATABASE_URL` | ✅ | SQLAlchemy 連線字串 |
+| `GEMINI_API_KEY` | 選填 | 使用 YOLO + Gemini 模式才需要填入。[申請網址](https://aistudio.google.com/app/apikey)，最低儲值 NT$400 |
+| `OPENAI_API_KEY` | 選填 | 使用 YOLO + GPT-4o 模式才需要填入。[申請網址](https://platform.openai.com/api-keys)，最低儲值 $5 USD |
+
+> ⚠️ `.env` 已被 `.gitignore` 排除，**請勿 commit 到 Git**，以防 API Key 外洩被盜刷。
 
 ## 啟動方式
 
@@ -242,9 +271,11 @@ pgAdmin 預設位置：
 - 下載後請將 `yolov11-x-weights-v6.pt` 放到：
   - `backend/server/yolo/weights/`
 - YOLO 載入邏輯位於 `backend/server/yolo/yolo.py`
+- VLM 二次確認邏輯位於 `backend/services/vlm_service.py`
 - 碳排計算邏輯位於 `backend/services/carbon_calculator.py`
 - 因子查詢邏輯位於 `backend/services/food_factor_service.py`
 - PostgreSQL 初始化檔位於 `database/init.sql`
+- VLM 信心度觸發門檻（`VLM_CONFIDENCE_THRESHOLD`）定義於 `backend/routes/detect.py`，目前設定為 `0.50`
 
 ## 權重檔準備
 

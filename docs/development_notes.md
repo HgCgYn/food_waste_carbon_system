@@ -2,9 +2,24 @@
 
 # Development Notes
 
+## YOLO 模型載入
+
 The original `restapi/server/yolo/yolo.py` and `weights/yolov11-x-weights-v6.pt` were copied into the new backend layout so the original repo is not modified destructively during the refactor.
 
 The backend loads YOLO weights by resolving the path from `backend/server/yolo/yolo.py`, which avoids path breakage after the directory rename.
+
+YOLO is configured with `conf=0.10` to maximise recall (High Recall Edge). Low-confidence objects are not discarded; instead they are passed to the cloud VLM for secondary confirmation.
+
+## VLM 整合
+
+`backend/services/vlm_service.py` handles all VLM API calls. It supports two backends:
+
+- **Google Gemini** (`yolo_gemini` mode): requires `GEMINI_API_KEY` in `.env`. Uses `gemini-2.5-flash`.
+- **OpenAI GPT-4o** (`yolo_gpt` mode): requires `OPENAI_API_KEY` in `.env`. Uses `gpt-4o` with `detail=low`.
+
+The confidence threshold that triggers VLM review is `VLM_CONFIDENCE_THRESHOLD = 0.50` in `backend/routes/detect.py`. Adjust this value to trade off API cost versus correction coverage.
+
+## 碳排資料
 
 `food_carbon_factors` includes starter seed data only. Update the table to match your trained YOLO label names for accurate carbon estimation.
 
