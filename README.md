@@ -57,7 +57,7 @@ YOLOv11 segmentation（邊緣端，conf=0.10）
     └── box
 ↓
 [若 model=yolo_gemini 或 yolo_gpt]
-低信心物件（confidence < 0.50）→ 裁切圖片 → VLM 二次確認
+低信心物件（confidence < 0.70）→ 批次裁切圖片 → VLM 單次批次確認（節省 API 額度）
     ├── VLM 回傳已知食物標籤 → 更新 label_name，記錄 vlm_corrected=True
     └── VLM 回傳 UNKNOWN 或 API 失敗 → 標記 vlm_ignored=True（丟棄物件）
 ↓
@@ -275,7 +275,8 @@ pgAdmin 預設位置：
 - 碳排計算邏輯位於 `backend/services/carbon_calculator.py`
 - 因子查詢邏輯位於 `backend/services/food_factor_service.py`
 - PostgreSQL 初始化檔位於 `database/init.sql`
-- VLM 信心度觸發門檻（`VLM_CONFIDENCE_THRESHOLD`）定義於 `backend/routes/detect.py`，目前設定為 `0.50`
+- VLM 信心度觸發門檻（`VLM_CONFIDENCE_THRESHOLD`）定義於 `backend/routes/detect.py`，目前設定為 `0.70`
+- VLM 二次確認採**批次（Batch）請求**策略：同一張圖片中所有低信心度物件的截圖會打包成**單一 API 請求**傳送，Gemini 與 GPT-4o 均以 JSON 格式一次回傳所有結果，有效節省 Free Tier 的 RPM（Requests Per Minute）配額
 
 ## 權重檔準備
 

@@ -6,8 +6,8 @@
 
 This system implements an **Edge-Cloud Collaborative** architecture for food waste carbon estimation.
 
-- **Edge Inference (YOLO)**: YOLOv11 runs locally inside Docker to detect food items with high confidence. Low-confidence objects (below `VLM_CONFIDENCE_THRESHOLD = 0.50`) are flagged for cloud review.
-- **Cloud VLM (optional)**: Cropped images of low-confidence objects are sent to Google Gemini or OpenAI GPT-4o for secondary visual confirmation. The VLM either corrects the label, or marks the object as non-food/ignored if unrecognized.
+- **Edge Inference (YOLO)**: YOLOv11 runs locally inside Docker to detect food items with high confidence. Low-confidence objects (below `VLM_CONFIDENCE_THRESHOLD = 0.70`) are flagged for cloud review.
+- **Cloud VLM (optional)**: Cropped images of all low-confidence objects in a single request are **batched into one API call** and sent to Google Gemini or OpenAI GPT-4o for secondary visual confirmation. The VLM returns results as a structured JSON array, which conserves Free Tier RPM quotas. Each object is then either corrected with a new label, or marked as non-food/ignored if unrecognized.
 
 ## Services
 

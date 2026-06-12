@@ -213,7 +213,7 @@ function SortableTh({ colKey, label, sortKey, sortDir, onSort }) {
  * ResultTable — recognition result table shown in View C.
  * Default sort: confidence descending.
  */
-export default function ResultTable({ items, isAlert = false }) {
+export default function ResultTable({ items, isAlert = false, isYoloOnly = false }) {
   const [sortKey, setSortKey] = useState("confidence");
   const [sortDir, setSortDir] = useState("desc");
 
@@ -267,13 +267,13 @@ export default function ResultTable({ items, isAlert = false }) {
             <SortableTh colKey="carbon_factor"     label="碳排係數"       {...sortProps} />
             <SortableTh colKey="carbon_emission_kg" label="碳排量 (kg)"   {...sortProps} />
             {/* Non-sortable: VLM correction info */}
-            <th style={thBaseStyle}>VLM 修正</th>
+            {!isYoloOnly && <th style={thBaseStyle}>VLM 修正</th>}
           </tr>
         </thead>
         <tbody>
           {sortedItems.length === 0 ? (
             <tr>
-              <td style={{ ...tdStyle, color: isAlert ? "#b91c1c" : "#9ca3af", textAlign: "center" }} colSpan={10}>
+              <td style={{ ...tdStyle, color: isAlert ? "#b91c1c" : "#9ca3af", textAlign: "center" }} colSpan={isYoloOnly ? 9 : 10}>
                 {isAlert ? "模型未偵測到可辨識物件，請重新輸入圖片。" : "尚無分析結果。"}
               </td>
             </tr>
@@ -284,7 +284,7 @@ export default function ResultTable({ items, isAlert = false }) {
                 <td style={tdStyle}>{item.label_name}</td>
                 <td style={tdStyle}>
                   <span style={statusStyle(item.has_carbon_data)}>
-                    {item.has_carbon_data ? "已對應碳排" : "無碳排資料"}
+                    {item.has_carbon_data ? "已對應" : "未對應"}
                   </span>
                 </td>
                 <td style={tdStyle}>{Number(item.confidence).toFixed(3)}</td>
@@ -298,28 +298,29 @@ export default function ResultTable({ items, isAlert = false }) {
                   {item.has_carbon_data ? Number(item.carbon_emission_kg).toFixed(6) : "—"}
                 </td>
                 {/* VLM correction column */}
-                <td style={tdStyle}>
-                  {item.vlm_corrected ? (
-                    <span style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "4px 10px",
-                      borderRadius: "999px",
-                      fontSize: "0.82rem",
-                      fontWeight: 700,
-                      background: "#eff6ff",
-                      color: "#1d4ed8",
-                      border: "1.5px solid #bfdbfe",
-                      whiteSpace: "nowrap",
-                    }}>
-                      {/* 閃電 icon 代表 VLM 介入 */}
-                      ⚡ {item.original_yolo_label} → {item.label_name}
-                    </span>
-                  ) : (
-                    <span style={{ color: "#9ca3af" }}>—</span>
-                  )}
-                </td>
+                {!isYoloOnly && (
+                  <td style={tdStyle}>
+                    {item.vlm_corrected ? (
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "4px 10px",
+                        borderRadius: "999px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        background: item.original_yolo_label === item.label_name ? "#f0fdf4" : "#fef2f2",
+                        color: item.original_yolo_label === item.label_name ? "#166534" : "#991b1b",
+                        border: item.original_yolo_label === item.label_name ? "1.5px solid #bbf7d0" : "1.5px solid #fecaca",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {item.original_yolo_label} → {item.label_name}
+                      </span>
+                    ) : (
+                      <span style={{ color: "#9ca3af" }}>—</span>
+                    )}
+                  </td>
+                )}
               </tr>
             ))
           )}

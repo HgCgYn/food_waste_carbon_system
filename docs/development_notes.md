@@ -17,7 +17,9 @@ YOLO is configured with `conf=0.10` to maximise recall (High Recall Edge). Low-c
 - **Google Gemini** (`yolo_gemini` mode): requires `GEMINI_API_KEY` in `.env`. Uses `gemini-2.5-flash`.
 - **OpenAI GPT-4o** (`yolo_gpt` mode): requires `OPENAI_API_KEY` in `.env`. Uses `gpt-4o` with `detail=low`.
 
-The confidence threshold that triggers VLM review is `VLM_CONFIDENCE_THRESHOLD = 0.50` in `backend/routes/detect.py`. Adjust this value to trade off API cost versus correction coverage.
+The confidence threshold that triggers VLM review is `VLM_CONFIDENCE_THRESHOLD = 0.70` in `backend/routes/detect.py`. Adjust this value to trade off API cost versus correction coverage.
+
+All low-confidence objects in a single request are batched into **one API call** (`confirm_low_confidence_items_batch`). Both Gemini and GPT-4o return results as a JSON array, which conserves the Free Tier RPM (Requests Per Minute) quota significantly.
 
 ## 碳排資料
 

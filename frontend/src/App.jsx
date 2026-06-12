@@ -310,6 +310,7 @@ export default function App() {
                   hasNoDetection={hasNoDetection}
                   onBack={goToSummary}
                   onRetryUpload={resetToHome}
+                  isYoloOnly={result?.model_used === "yolo"}
                 />
               </div>
             </div>
@@ -426,9 +427,9 @@ function HeroSection() {
 
 /**
  * Panel C — shows detection images and the recognition result table.
- * @param {{ result: object, hasNoDetection: boolean, onBack: () => void, onRetryUpload: () => void }} props
+ * @param {{ result: object, hasNoDetection: boolean, onBack: () => void, onRetryUpload: () => void, isYoloOnly: boolean }} props
  */
-function DetailView({ result, hasNoDetection, onBack, onRetryUpload }) {
+function DetailView({ result, hasNoDetection, onBack, onRetryUpload, isYoloOnly }) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleBackClick = () => {
@@ -519,7 +520,7 @@ function DetailView({ result, hasNoDetection, onBack, onRetryUpload }) {
         </div>
 
         {/* Recognition table */}
-        <ResultTable items={result?.objects ?? []} isAlert={hasNoDetection} />
+        <ResultTable items={result?.objects ?? []} isAlert={hasNoDetection} isYoloOnly={isYoloOnly} />
       </div>
     </div>
   );
