@@ -289,24 +289,32 @@ def run_experiment(mode: str, gt_rows: list[dict], yolo_model) -> list[dict]:
                 vlm_triggered = 1
                 try:
                     pil_img = Image.open(image_path).convert("RGB")
-                    if best is not None:
-                        cropped = _crop_box(pil_img, best["box"])
-                    else:
-                        cropped = pil_img  # no bbox, use full image
-                    vlm_raw = vlm.confirm_low_confidence_item(cropped, yolo_label)
+                    box_coords = best["box"] if best is not None else None
+
+                    # NOTE: Method B (Visual Prompting) — draw a red bounding box on
+                    # the full image and send it to the VLM. This lets the model use
+                    # surrounding dishes as context to improve accuracy.
+                    vlm_raw = vlm.confirm_with_visual_context(
+                        full_image=pil_img,
+                        box=box_coords,
+                        yolo_label=yolo_label,
+                    )
                     vlm_label = vlm_raw
 
                     # NOTE: Fallback strategy — if VLM cannot identify the item
                     # (returns 'unknown'), keep YOLO's prediction as the final answer.
                     # This reflects real-world behavior: VLM is a corrector, not a replacer.
                     from services.vlm_service import UNKNOWN_LABEL
-                    if vlm_raw == UNKNOWN_LABEL:
+                    if vlm_raw.strip().lower() == UNKNOWN_LABEL:
                         vlm_correct = yolo_correct  # fallback to YOLO
                     else:
-                        vlm_correct = 1 if _label_is_correct(ground_truth, vlm_label) else 0
+                        # NOTE: Multi-label check — VLM may return comma-separated items
+                        # (e.g. 'steak, zucchini, mushroom'). Count as correct if the
+                        # ground truth matches ANY item in the returned list.
+                        vlm_correct = 1 if _label_is_correct_in_multilabel(ground_truth, vlm_label) else 0
 
                     logger.info(
-                        "[%s] %s | GT=%s | YOLO=%s(%.2f) → VLM=%s | correct=%d",
+                        "[%s] %s | GT=%s | YOLO=%s(%.2f) → VLM=[%s] | correct=%d",
                         mode, filename, ground_truth, yolo_label, yolo_conf, vlm_label, vlm_correct,
                     )
                 except Exception as exc:
