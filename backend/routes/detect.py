@@ -24,7 +24,7 @@ yolo_model = YOLOModel()
 image_storage_service = ImageStorageService()
 
 # NOTE: YOLO 信心度低於此門檻的物件才會觸發 VLM 二次確認
-VLM_CONFIDENCE_THRESHOLD = 0.50
+VLM_CONFIDENCE_THRESHOLD = 0.70
 
 GARBAGE_CLASSES = {35.0}
 IGNORE_CLASSES = {58.0, 31.0, 42.0, 70.0, 83.0, 25.0, 27.0, 22.0, 11.0, 8.0}
@@ -75,9 +75,13 @@ async def detect_objects(
     if model in ("yolo_gemini", "yolo_gpt"):
         try:
             vlm = VLMService(model=model)
+            
+            # NOTE: 收集所有需要 VLM 確認的低信心度物件
+            low_conf_objs = []
+            batch_items = []
+            
             for obj in detected_objects:
                 label = float(obj["label"])
-                # NOTE: 只有食物物件且信心度低於門檻才送 VLM 確認
                 if (
                     label not in GARBAGE_CLASSES
                     and label not in IGNORE_CLASSES
@@ -92,11 +96,15 @@ async def detect_objects(
                     )
                     cropped = image.crop((x1, y1, x2, y2))
                     
+                    low_conf_objs.append(obj)
+                    batch_items.append((cropped, obj["label_name"]))
+            
+            # NOTE: 批次呼叫 VLM 服務以節省 API 額度（例如 Gemini 5 RPM 限制）
+            if batch_items:
+                corrected_labels = vlm.confirm_low_confidence_items_batch(batch_items)
+                
+                for obj, corrected_label in zip(low_conf_objs, corrected_labels):
                     original_label_name = obj["label_name"]
-                    corrected_label = vlm.confirm_low_confidence_item(
-                        cropped_image=cropped,
-                        yolo_label=original_label_name,
-                    )
                     
                     if corrected_label == UNKNOWN_LABEL:
                         # NOTE: VLM 認定非食物 → 標記此物件為略過
@@ -108,7 +116,7 @@ async def detect_objects(
                         obj["vlm_corrected"] = True
                         
                     logger.info(
-                        "VLM correction: %s (conf=%.2f) → %s",
+                        "VLM batch correction: %s (conf=%.2f) → %s",
                         original_label_name,
                         obj["confidence"],
                         corrected_label,
@@ -181,6 +189,7 @@ async def detect_objects(
         "total_carbon_emission_kg": total_carbon_emission_kg,
         "matched_item_count": matched_item_count,
         "unmatched_item_count": unmatched_item_count,
+        "model_used": model,
         "image_paths": {
             "original": original_path,
             "detected": detect_path,

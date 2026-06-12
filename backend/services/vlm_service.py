@@ -50,6 +50,26 @@ Available labels:
 Reply with ONLY the label name from the list above, nothing else.
 Do not add punctuation, explanation, or quotes."""
 
+_BATCH_VLM_PROMPT_TEMPLATE = """You are a food classification assistant.
+
+I am providing you with {count} cropped images from a cafeteria food tray.
+For each image, I have provided its sequence number and the original YOLO label (which had low confidence).
+
+Please identify the food item in EACH image and select the MOST appropriate label from the following list. 
+If the item is NOT food (e.g. a napkin, utensil, or garbage), classify it as: unknown
+
+Available labels:
+{label_list}
+
+You must respond in strictly valid JSON format, containing a single object with a "results" key mapping to a list of strings.
+The list must contain exactly {count} strings, corresponding to the images in the order they were provided.
+
+Example format:
+{{
+  "results": ["apple", "unknown", "rice"]
+}}
+"""
+
 
 def _pil_to_base64_jpeg(image: Image.Image) -> str:
     """Convert a PIL Image to a base64-encoded JPEG string."""
@@ -109,6 +129,38 @@ class VLMService:
         if self.model == "yolo_gemini":
             return self._call_gemini(image_b64, prompt)
         return self._call_openai(image_b64, prompt)
+
+    def confirm_low_confidence_items_batch(
+        self,
+        items: list[tuple[Image.Image, str]],
+    ) -> list[str]:
+        """Send multiple cropped bounding-box images to the configured VLM for re-classification in a single request.
+
+        Args:
+            items: A list of tuples, each containing (cropped_image, yolo_label).
+
+        Returns:
+            A list of label strings corresponding to each input item.
+        """
+        if not items:
+            return []
+            
+        if len(items) == 1:
+            # Fallback to single if only 1 item to save context
+            res = self.confirm_low_confidence_item(items[0][0], items[0][1])
+            return [res]
+
+        prompt = _BATCH_VLM_PROMPT_TEMPLATE.format(
+            count=len(items),
+            label_list=", ".join(FOOD_LABEL_LIST),
+        )
+        
+        images_b64 = [_pil_to_base64_jpeg(img) for img, _ in items]
+        labels = [lbl for _, lbl in items]
+
+        if self.model == "yolo_gemini":
+            return self._call_gemini_batch(images_b64, labels, prompt)
+        return self._call_openai_batch(images_b64, labels, prompt)
 
     # ──────────────────────────────────────────────────────────────────────────
     # Private helpers
@@ -187,6 +239,95 @@ class VLMService:
         except Exception as exc:
             logger.error("OpenAI API call failed: %s", exc)
             return UNKNOWN_LABEL
+
+    def _call_gemini_batch(self, images_b64: list[str], labels: list[str], prompt: str) -> list[str]:
+        """Call Google Gemini Vision API for multiple images."""
+        import json
+        try:
+            import google.generativeai as genai  # type: ignore
+
+            genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+            model = genai.GenerativeModel("gemini-2.5-flash")
+
+            contents = [prompt]
+            for idx, (img_b64, label) in enumerate(zip(images_b64, labels)):
+                contents.append(f"Image {idx + 1} (YOLO detected as: {label}):")
+                contents.append({
+                    "inline_data": {
+                        "mime_type": "image/jpeg",
+                        "data": img_b64,
+                    }
+                })
+
+            response = model.generate_content(
+                contents,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                )
+            )
+            
+            raw_text = response.text.strip()
+            data = json.loads(raw_text)
+            results = data.get("results", [])
+            
+            # Ensure length matches
+            while len(results) < len(images_b64):
+                results.append(UNKNOWN_LABEL)
+                
+            return [self._normalise_label(res) for res in results[:len(images_b64)]]
+
+        except EnvironmentError:
+            raise
+        except Exception as exc:
+            logger.error("Gemini batch API call failed: %s", exc)
+            return [UNKNOWN_LABEL] * len(images_b64)
+
+    def _call_openai_batch(self, images_b64: list[str], labels: list[str], prompt: str) -> list[str]:
+        """Call OpenAI GPT-4o Vision API for multiple images."""
+        import json
+        try:
+            from openai import OpenAI  # type: ignore
+
+            client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+            
+            content_list = [{"type": "text", "text": prompt}]
+            for idx, (img_b64, label) in enumerate(zip(images_b64, labels)):
+                content_list.append({"type": "text", "text": f"Image {idx + 1} (YOLO detected as: {label}):"})
+                content_list.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{img_b64}",
+                        "detail": "low",
+                    },
+                })
+                
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": content_list,
+                    }
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=200,
+            )
+            
+            raw_text = response.choices[0].message.content.strip()
+            data = json.loads(raw_text)
+            results = data.get("results", [])
+            
+            # Ensure length matches
+            while len(results) < len(images_b64):
+                results.append(UNKNOWN_LABEL)
+                
+            return [self._normalise_label(res) for res in results[:len(images_b64)]]
+
+        except EnvironmentError:
+            raise
+        except Exception as exc:
+            logger.error("OpenAI batch API call failed: %s", exc)
+            return [UNKNOWN_LABEL] * len(images_b64)
 
     @staticmethod
     def _normalise_label(raw: str) -> str:
