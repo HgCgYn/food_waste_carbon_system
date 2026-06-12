@@ -39,6 +39,7 @@ class AnalysisRecord(Base):
     total_weight_g = Column(Float, nullable=False)
     total_carbon_emission_kg = Column(Numeric(12, 6), nullable=False, default=0)
     waste_percentage = Column(Float, nullable=False, default=0)
+    model_used = Column(String(50), nullable=False, default="yolo")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     user = relationship("User", back_populates="records")

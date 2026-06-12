@@ -14,10 +14,11 @@ const ERROR_MESSAGE_MAP = {
     "影像辨識發生錯誤，請稍後再試。",
 };
 
-export async function detectWaste(file, totalWeightG) {
+export async function detectWaste(file, totalWeightG, model = "yolo") {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("total_weight_g", totalWeightG);
+  formData.append("model", model);
 
   const response = await fetch(`${API_BASE_URL}/api/detect`, {
     method: "POST",

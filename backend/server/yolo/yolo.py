@@ -27,7 +27,7 @@ class YOLOModel:
                 raise RuntimeError("YOLO model is not available")
             print("Predicting...")
             with torch.no_grad():
-                results = self.model(frame)
+                results = self.model(frame, conf=0.10)
             detected_objects = []
             for result in results:
                 if result.masks is None:
