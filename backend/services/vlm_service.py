@@ -40,33 +40,33 @@ _VLM_PROMPT_TEMPLATE = """You are a food classification assistant.
 The image is a cropped region from a cafeteria food tray.
 YOLO detected this region as "{yolo_label}" but with low confidence (below 70%).
 
-Please identify the food item and select the MOST appropriate label from the
-following list. If the item is NOT food (e.g. a napkin, utensil, or garbage),
-reply with exactly: unknown
-
-Available labels:
+Please identify the food item in English. 
+Try to map it to one of the following known labels if possible:
 {label_list}
 
-Reply with ONLY the label name from the list above, nothing else.
-Do not add punctuation, explanation, or quotes."""
+If it doesn't fit any known label, just reply with a short 1-2 word English name for the food (e.g. "dumplings", "tofu", "green pepper").
+If the item is completely NOT food (e.g. a napkin, utensil, or garbage), reply with exactly: unknown
+
+Reply with ONLY the label name, nothing else. Do not add punctuation, explanation, or quotes."""
 
 _BATCH_VLM_PROMPT_TEMPLATE = """You are a food classification assistant.
 
 I am providing you with {count} cropped images from a cafeteria food tray.
 For each image, I have provided its sequence number and the original YOLO label (which had low confidence).
 
-Please identify the food item in EACH image and select the MOST appropriate label from the following list. 
-If the item is NOT food (e.g. a napkin, utensil, or garbage), classify it as: unknown
-
-Available labels:
+Please identify the food item in EACH image in English.
+Try to map it to one of the following known labels if possible:
 {label_list}
+
+If it doesn't fit any known label, just provide a short 1-2 word English name (e.g. "dumplings", "tofu").
+If the item is completely NOT food (e.g. a napkin, utensil, or garbage), classify it as: unknown
 
 You must respond in strictly valid JSON format, containing a single object with a "results" key mapping to a list of strings.
 The list must contain exactly {count} strings, corresponding to the images in the order they were provided.
 
 Example format:
 {{
-  "results": ["apple", "unknown", "rice"]
+  "results": ["apple", "dumplings", "unknown", "rice"]
 }}
 """
 
@@ -350,6 +350,7 @@ class VLMService:
             if label.lower() in cleaned or cleaned in label.lower():
                 return label
                 
-        # NOTE: Fallback — VLM 回傳了非清單內的內容，視為無法辨識
-        logger.warning("VLM returned unrecognised label: '%s', treating as unknown", raw)
-        return UNKNOWN_LABEL
+        # NOTE: Fallback — VLM returned a custom label not in the list.
+        # Allow it to return the custom label so the evaluation script can map it.
+        logger.warning("VLM returned unrecognised label: '%s', returning as-is", raw)
+        return cleaned
