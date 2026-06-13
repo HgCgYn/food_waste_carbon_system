@@ -148,6 +148,24 @@ def _label_is_correct(ground_truth: str, predicted: str) -> bool:
     return any(predicted_lower in syn.lower() or syn.lower() in predicted_lower for syn in synonyms)
 
 
+def _label_is_correct_in_multilabel(ground_truth: str, vlm_output: str) -> bool:
+    """Return True if the ground truth label is found in a comma-separated VLM output.
+
+    The VLM may return multiple food items separated by commas (e.g. 'steak, zucchini, mushroom').
+    This function checks whether ANY of those items matches the ground truth synonym list.
+
+    Args:
+        ground_truth: Chinese ground truth label (key in LABEL_MAP).
+        vlm_output:   Raw VLM response string, possibly comma-separated.
+
+    Returns:
+        True if at least one item in the VLM list matches ground_truth.
+    """
+    # Split by comma, strip whitespace from each token
+    tokens = [t.strip() for t in vlm_output.split(",") if t.strip()]
+    return any(_label_is_correct(ground_truth, token) for token in tokens)
+
+
 def _load_yolo():
     """Load and return the YOLO model instance."""
     from ultralytics import YOLO as _YOLO
