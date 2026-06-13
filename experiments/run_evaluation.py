@@ -127,7 +127,7 @@ LABEL_MAP: dict[str, list[str]] = {
     "蘋果": ["apple", "apples"],
     "藍莓": ["blueberries", "blueberry"],
     "覆盆莓": ["strawberry", "raspberry", "berries", "raspberries"],
-    "柳橙": ["melon", "lime", "lemon", "orange", "citrus"],
+    "柳橙": ["melon", "lime", "orange", "citrus"],
     # 甜點
     "鬆餅": ["cake", "bread", "waffle", "waffles", "pancake", "pancakes"],
     "餅乾": ["cake", "bread", "cookie", "cookies", "biscuit", "lotus"],

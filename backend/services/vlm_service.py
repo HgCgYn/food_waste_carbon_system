@@ -93,11 +93,6 @@ Your task:
 Try to match each item to one of the following known labels:
 {label_list}
 
-Cultural Context (Taiwanese Bento/Cafeteria):
-- Yellow/white soft blocks are highly likely to be "steamed egg" or "tofu" rather than cheese.
-- Dark brown minced/sliced meats are usually braised pork or chicken rather than western stews.
-- Please consider common Asian ingredients (e.g., rice cake, enoki mushroom, bok choy) based on texture.
-
 For items not in the list, use a short 1-2 word English name (e.g. "dumplings", "tofu").
 Ignore the plate, bowl, fork, chopsticks or other non-food items.
 
