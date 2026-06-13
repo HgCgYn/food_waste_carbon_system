@@ -87,7 +87,8 @@ YOLO initially detected the highlighted region as "{yolo_label}" but with LOW co
 
 Your task:
 1. Look at the ENTIRE image to understand what meal this is.
-2. Then focus on the RED-BOXED region and identify ALL food items inside it.
+2. Focus on the RED-BOXED region. Briefly analyze the visual features of the items inside the box (color, texture, shape).
+3. Identify ALL food items inside the red-boxed region based on your analysis.
 
 Try to match each item to one of the following known labels:
 {label_list}
@@ -95,22 +96,33 @@ Try to match each item to one of the following known labels:
 For items not in the list, use a short 1-2 word English name (e.g. "dumplings", "tofu").
 Ignore the plate, bowl, fork, chopsticks or other non-food items.
 
-Reply with a COMMA-SEPARATED list of food items in the red-boxed region (e.g. "steak, zucchini, mushroom").
-Do NOT include explanations, quotes, or punctuation other than commas."""
+You MUST format your response exactly as follows:
+Analysis: <Your brief visual analysis of the items in the red box>
+Items: <COMMA-SEPARATED list of food items, e.g. "steak, zucchini, mushroom">
+
+Do NOT include any other text.
+"""
 
 # Fallback when YOLO detected NOTHING — VLM receives the raw full image.
 _VISUAL_CONTEXT_NO_BOX_PROMPT = """You are a food classification assistant for a Taiwanese cafeteria.
 
 The image shows a food tray. YOLO object detection completely failed to detect any items.
 
-Please identify ALL food items visible in this image.
+Your task:
+1. Briefly analyze the visual features of all the items on the tray (color, texture, shape).
+2. Identify ALL food items visible in this image.
+
 Try to match each item to one of the following known labels:
 {label_list}
 
 For items not in the list, use short 1-2 word English names.
 
-Reply with a COMMA-SEPARATED list of all food items (e.g. "steak, zucchini, mushroom").
-Do NOT include plates, cutlery, or other non-food items."""
+You MUST format your response exactly as follows:
+Analysis: <Your brief visual analysis of the items on the tray>
+Items: <COMMA-SEPARATED list of food items>
+
+Do NOT include any other text.
+"""
 
 
 def _pil_to_base64_jpeg(image: Image.Image) -> str:
@@ -353,9 +365,12 @@ class VLMService:
                 }
             }
             response = model.generate_content([prompt, image_part])
+            text = response.text.strip().lower()
+            if "items:" in text:
+                text = text.split("items:")[-1].strip()
             # NOTE: Return raw text — multi-label normalisation happens in the
             # evaluation script via _label_is_correct_in_multilabel().
-            return response.text.strip().lower()
+            return text
 
         except EnvironmentError:
             raise
@@ -427,12 +442,15 @@ class VLMService:
                         ],
                     }
                 ],
-                # NOTE: Longer max_tokens to accommodate comma-separated multi-label output
-                max_tokens=80,
+                # NOTE: Longer max_tokens to accommodate CoT analysis and comma-separated multi-label output
+                max_tokens=300,
             )
+            text = response.choices[0].message.content.strip().lower()
+            if "items:" in text:
+                text = text.split("items:")[-1].strip()
             # NOTE: Return raw text — multi-label normalisation happens in the
             # evaluation script via _label_is_correct_in_multilabel().
-            return response.choices[0].message.content.strip().lower()
+            return text
 
         except EnvironmentError:
             raise
