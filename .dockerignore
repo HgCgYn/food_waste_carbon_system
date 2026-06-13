@@ -1,0 +1,10 @@
+.git
+.env
+**/__pycache__
+**/*.pyc
+backend/server/yolo/weights/*.pt
+backend/storage
+frontend/node_modules
+frontend/dist
+postgres_data
+pgadmin_data

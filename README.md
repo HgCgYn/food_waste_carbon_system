@@ -185,6 +185,7 @@ cp .env.example .env
 | `DATABASE_URL` | ✅ | SQLAlchemy 連線字串 |
 | `GEMINI_API_KEY` | 選填 | 使用 YOLO + Gemini 模式才需要填入。[申請網址](https://aistudio.google.com/app/apikey)，最低儲值 NT$400 |
 | `OPENAI_API_KEY` | 選填 | 使用 YOLO + GPT-4o 模式才需要填入。[申請網址](https://platform.openai.com/api-keys)，最低儲值 $5 USD |
+| `VITE_API_BASE_URL` | 部署時必填 | 前端呼叫的後端網址，例如 `https://food-waste-carbon-api.onrender.com` |
 
 > ⚠️ `.env` 已被 `.gitignore` 排除，**請勿 commit 到 Git**，以防 API Key 外洩被盜刷。
 
@@ -256,7 +257,7 @@ docker compose start
 啟動後可使用：
 
 - React 前端：`http://localhost:5173`
-- FastAPI Swagger 文件：`http://localhost:8000/docs`
+- FastAPI Swagger 文件：`http://localhost:8001/docs`
 
 如果你要啟用 pgAdmin：
 
@@ -278,6 +279,28 @@ pgAdmin 預設位置：
 - YOLO 載入邏輯位於 `backend/server/yolo/yolo.py`
 - VLM 二次確認邏輯位於 `backend/services/vlm_service.py`
 - 碳排計算邏輯位於 `backend/services/carbon_calculator.py`
+
+## Render 部署
+
+專案根目錄的 `render.yaml` 會建立：
+
+- `food-waste-carbon-api`：FastAPI Docker Web Service
+- `food-waste-carbon-web`：React Static Site
+- `food-waste-carbon-db`：PostgreSQL
+
+後端 Docker build 會從固定版本的 GitHub Release 自動下載
+`yolov11-x-weights-v6.pt`，不需要將權重檔提交到 Git。
+
+部署步驟：
+
+1. 將專案推送到 GitHub。
+2. 在 Render 選擇 **New > Blueprint**，連接此 repository。
+3. 建立資源時，未使用 Gemini 或 GPT 模式可將對應 API Key 留空。
+4. 建立完成後，確認 Static Site 的 `VITE_API_BASE_URL` 與實際後端網址一致，再重新部署前端。
+
+後端啟動時會建立資料表，並以 `database/init.sql` 補入尚未存在的碳排係數。
+免費 Web Service 的本機檔案系統不是永久儲存空間，因此 `backend/storage`
+中的上傳圖片會在服務重啟或重新部署後消失；分析結果與係數仍會保存在 PostgreSQL。
 - 因子查詢邏輯位於 `backend/services/food_factor_service.py`
 - PostgreSQL 初始化檔位於 `database/init.sql`
 - VLM 信心度觸發門檻（`VLM_CONFIDENCE_THRESHOLD`）定義於 `backend/routes/detect.py`，目前設定為 `0.70`
