@@ -355,7 +355,7 @@ function HeroSection() {
           zIndex: -2,
         }}
       >
-        <source src="/src/assets/Homepage_video.mp4" type="video/mp4" />
+        <source src="/Homepage_video.mp4" type="video/mp4" />
       </video>
 
       {/* Dark overlay */}
