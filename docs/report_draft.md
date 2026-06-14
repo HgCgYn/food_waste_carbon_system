@@ -23,6 +23,21 @@ first_author@first.author.affiliation
 3. 透過嚴謹的實驗設計與進階統計檢定（如 McNemar's Test、卡方檢定），量化評估純 YOLO 模式與 YOLO+VLM 模式在不同難易度及不同飲食文化（東方 vs 西方）場景下的準確度差異。
 4. 探討本系統在吃到飽餐廳等真實商業場景中的落地應用價值。
 
+1.3 系統展示與線上體驗
+為了讓讀者與評審能實際體會「YOLO 初篩」與「VLM 視覺糾錯」兩者在表現上的巨大差異，本研究將前端互動介面部署於雲端平台，歡迎讀者點擊以下連結進行線上體驗：
+**線上展示網站：https://foodwastecarbonsystem.vercel.app/**
+
+[IMAGE: experiments/homepage_screenshot.png]
+
+在部署架構上，本專案採用前後端分離的雲端部署架構：
+- **前端 (React/Vite)**：託管於 Vercel (`https://foodwastecarbonsystem.vercel.app/`)，以確保穩定的全球存取速度與自動化的 CI/CD 流程。
+- **後端 (FastAPI)**：部署於 Hugging Face Spaces (`https://hgcgyn-food-waste-api.hf.space`)，負責處理影像上傳、YOLO 推論與雲端 VLM API 路由請求。
+
+**系統辨識限制說明：**
+讀者在實際體驗時需注意，本系統目前在設計上**僅支援放置於「圓形餐盤」上的食物辨識**。此限制主要是基於以下工程考量：
+1. **YOLO 訓練特徵侷限**：本研究在初期訓練輕量化 YOLO 模型時，所蒐集的資料集高度集中於標準圓形餐盤上的食物狀態。若將食物放置於方形餐盒或不規則容器中，會導致背景特徵與訓練分佈脫節，大幅降低初篩信心度。
+2. **空間定位與裁切邏輯**：系統在進行 Red Box 全圖脈絡提示時，依賴圓形餐盤的邊緣輪廓作為空間定位的基準參考（Reference Anchor），這使得 VLM 在理解「食物殘渣與盤子間的相對比例」時更具方向感。若缺乏標準圓盤作為參照物，VLM 在評估食物份量與種類時的幻覺率會顯著提高。
+
 2. 相關文獻與技術探討
 
 2.1 YOLO 物件偵測技術於邊緣運算之應用
