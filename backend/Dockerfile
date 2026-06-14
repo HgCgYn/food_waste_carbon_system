@@ -11,7 +11,6 @@ WORKDIR $HOME/app
 ARG YOLO_MODEL_URL=https://github.com/joaopferreira19/Food-Waste-Detection-using-YOLOv11/releases/download/0.3.0/yolov11-x-weights-v6.pt
 ARG YOLO_MODEL_SHA256=bb4beadb985b85b8768dcda52ca85d1ea1dbb533afcbf9f46bd1f014651c1ca7
 
-COPY backend/requirements.txt .
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
