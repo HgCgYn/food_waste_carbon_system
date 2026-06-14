@@ -9,6 +9,7 @@ from database import models  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 # NOTE: Carbon factors (kg CO2e per kg food) sourced from FAO & IPCC AR5 estimates.
 # Density factors are used to convert pixel area ratios to weight estimates.
 SEED_FOOD_FACTORS = [
@@ -117,3 +118,21 @@ def init_database() -> None:
     finally:
         db.close()
 
+=======
+SEED_SQL_PATH = Path(__file__).resolve().parents[1] / "sql" / "init.sql"
+
+
+def init_database():
+    Base.metadata.create_all(bind=engine)
+    if not SEED_SQL_PATH.exists():
+        return
+
+    seed_sql = SEED_SQL_PATH.read_text(encoding="utf-8")
+    raw_connection = engine.raw_connection()
+    try:
+        with raw_connection.cursor() as cursor:
+            cursor.execute(seed_sql)
+        raw_connection.commit()
+    finally:
+        raw_connection.close()
+>>>>>>> 4cb83dcd0a13b80e08baabbe506a605da02e931d
