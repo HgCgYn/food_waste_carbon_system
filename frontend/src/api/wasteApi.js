@@ -1,6 +1,8 @@
 // Frontend API client that submits multipart form data to the FastAPI detect endpoint.
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
+).replace(/\/$/, "");
 
 // NOTE: Maps backend English error messages to user-friendly Traditional Chinese.
 const ERROR_MESSAGE_MAP = {

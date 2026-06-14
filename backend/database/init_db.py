@@ -1,4 +1,6 @@
-"""Database bootstrap that creates tables from SQLAlchemy models on app startup."""
+"""Database bootstrap that creates tables and seeds food factors on startup."""
+
+from pathlib import Path
 
 import logging
 

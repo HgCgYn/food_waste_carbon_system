@@ -7,17 +7,19 @@ services:
       - "5173:5173"
     environment:
       VITE_API_BASE_URL: http://localhost:8001
-      VITE_PROXY_TARGET: http://backend:8000
+      VITE_PROXY_TARGET: http://backend:10000
     depends_on:
       - backend
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: food-waste-carbon-backend
     env_file:
       - .env
     ports:
-      - "8001:8000"
+      - "8001:10000"
     depends_on:
       - postgres
     volumes:

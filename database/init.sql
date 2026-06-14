@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS analysis_records (
     total_weight_g DOUBLE PRECISION NOT NULL,
     total_carbon_emission_kg NUMERIC(12, 6) NOT NULL DEFAULT 0,
     waste_percentage DOUBLE PRECISION NOT NULL DEFAULT 0,
+    model_used VARCHAR(50) NOT NULL DEFAULT 'yolo',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
