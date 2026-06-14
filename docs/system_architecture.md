@@ -20,6 +20,12 @@ This system implements an **Edge-Cloud Collaborative** architecture for food was
 4. Calculates carbon emissions from `carbon_factor`.
 5. Stores the analysis result into PostgreSQL.
 
-`database` contains the PostgreSQL bootstrap SQL for the system tables and starter food factor data.
+`database` contains the SQLAlchemy models and Python ORM logic (`init_db.py`) to bootstrap the database tables and seed starter food factor data.
 
 `docker-compose.yml` orchestrates `frontend`, `backend`, `postgres`, and optional `pgadmin`.
+
+## Deployment
+
+The system is deployed using a decoupled architecture:
+- **Frontend (React)**: Deployed statically on Vercel (`https://foodwastecarbonsystem.vercel.app/`).
+- **Backend (FastAPI)**: Deployed on Hugging Face Spaces Docker container (`https://hgcgyn-food-waste-api.hf.space`). Hugging Face manages the PostgreSQL database instance and YOLO weights downloading during Docker build.

@@ -280,31 +280,33 @@ pgAdmin 預設位置：
 - VLM 二次確認邏輯位於 `backend/services/vlm_service.py`
 - 碳排計算邏輯位於 `backend/services/carbon_calculator.py`
 
-## Render 部署
+## 雲端部署 (Vercel + Hugging Face Spaces)
 
-專案根目錄的 `render.yaml` 會建立：
+專案目前採用前後端分離的雲端部署架構：
 
-- `food-waste-carbon-api`：FastAPI Docker Web Service
-- `food-waste-carbon-web`：React Static Site
-- `food-waste-carbon-db`：PostgreSQL
+- **前端 (React/Vite)**：部署於 Vercel (`https://foodwastecarbonsystem.vercel.app/`)
+- **後端 (FastAPI)**：部署於 Hugging Face Spaces (`https://hgcgyn-food-waste-api.hf.space`)
 
 後端 Docker build 會從固定版本的 GitHub Release 自動下載
 `yolov11-x-weights-v6.pt`，不需要將權重檔提交到 Git。
 
-部署步驟：
+### 部署步驟
 
 1. 將專案推送到 GitHub。
-2. 在 Render 選擇 **New > Blueprint**，連接此 repository。
-3. 建立資源時，未使用 Gemini 或 GPT 模式可將對應 API Key 留空。
-4. 建立完成後，確認 Static Site 的 `VITE_API_BASE_URL` 與實際後端網址一致，再重新部署前端。
+2. **後端部署 (Hugging Face Spaces)**:
+   - 在 Hugging Face 建立一個新的 Docker Space，連接至 GitHub backend 目錄或拖曳上傳 `backend` 資料夾內容。
+   - 配置 Secret 環境變數 (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_URL`，以及選用的 `GEMINI_API_KEY` 或 `OPENAI_API_KEY`)。
+3. **前端部署 (Vercel)**:
+   - 在 Vercel 連接 GitHub repo 的 `frontend` 目錄。
+   - 在 Environment Variables 設定 `VITE_API_BASE_URL` 為 Hugging Face Spaces 的網址 (例如 `https://hgcgyn-food-waste-api.hf.space`)。
 
-後端啟動時會建立資料表，並以 `database/init.sql` 補入尚未存在的碳排係數。
-免費 Web Service 的本機檔案系統不是永久儲存空間，因此 `backend/storage`
-中的上傳圖片會在服務重啟或重新部署後消失；分析結果與係數仍會保存在 PostgreSQL。
+後端啟動時會建立資料表，並以 `backend/database/init_db.py` 自動補入預設的 75 種食物碳排係數。
+Hugging Face Spaces 免費版的檔案系統不是永久儲存，上傳的圖片可能在重啟後遺失，但 PostgreSQL 中的紀錄會被永久保存。
+
 - 因子查詢邏輯位於 `backend/services/food_factor_service.py`
-- PostgreSQL 初始化檔位於 `database/init.sql`
+- Python ORM 資料庫初始化檔位於 `backend/database/init_db.py`
 - VLM 信心度觸發門檻（`VLM_CONFIDENCE_THRESHOLD`）定義於 `backend/routes/detect.py`，目前設定為 `0.70`
-- VLM 二次確認採**批次（Batch）請求**策略：同一張圖片中所有低信心度物件的截圖會打包成**單一 API 請求**傳送，Gemini 與 GPT-4o 均以 JSON 格式一次回傳所有結果，有效節省 Free Tier 的 RPM（Requests Per Minute）配額
+- VLM 二次確認採**批次（Batch）請求**策略：同一張圖片中所有低信心度物件的截圖會打包成**單一 API 請求**傳送，節省配額。
 
 ## 權重檔準備
 
