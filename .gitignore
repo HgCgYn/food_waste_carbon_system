@@ -33,7 +33,14 @@ npm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+~$*.docx
+~*.docx
 
 # Database / local containers
 postgres_data/
 pgadmin_data/
+
+# Temporary data & scratch files
+backend_logs.txt
+scratch_*.py
+*.csv
